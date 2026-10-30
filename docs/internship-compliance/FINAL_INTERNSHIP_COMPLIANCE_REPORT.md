@@ -78,7 +78,7 @@ Status vocabulary: **PASS**, **PARTIAL**, **FAIL**, **BLOCKED**,
 | Browser E2E | **PASS** | Playwright `2 passed`; desktop journey and mobile overflow |
 | Security baseline | **PARTIAL** | Core auth/ownership/upload/error controls pass; rate limiting, TLS, revocation, CSP not implemented |
 | Existing local `5432` runtime | **BLOCKED** | Configured `blog_user` auth fails; health 503; no admin reset authorization |
-| Independent local Git repository | **PASS** | Initialized in `blog-api`; staged-file audit and local commit documented in the checklist |
+| Independent local Git repository | **PASS** | Initialized in `blog-api`; local commit `a24a535`; staged-file audit documented in the checklist |
 | GitHub remote/push | **BLOCKED** | No remote, no push authorization |
 | Deployment | **NOT APPLICABLE** | Not required for the internship API assignment; deployment guide is documentation only and not executed |
 | CI/CD pipeline | **NOT APPLICABLE** | No CI workflow is included or claimed |
