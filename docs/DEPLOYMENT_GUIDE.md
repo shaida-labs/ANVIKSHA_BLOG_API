@@ -251,14 +251,14 @@ alerting. Add them at the application or platform layer.
 | Item | Status |
 |---|---|
 | Local Uvicorn API | **PASS** |
-| Local PostgreSQL migrations | **PASS** on disposable PostgreSQL 18 cluster |
+| Local PostgreSQL migrations | **PASS** on disposable PostgreSQL 18 cluster and configured `5432` database |
+| Configured local `5432` app database | **PASS**; `/health` 200; live E2E `49/49` |
 | Local frontend production build | **PASS** |
 | Local browser E2E | **PASS** with running backend and frontend |
 | Docker image/Compose | **NOT IMPLEMENTED / NOT VERIFIED** |
 | Cloud deployment | **NOT PERFORMED** |
 | TLS/domain | **NOT PERFORMED** |
 | GitHub remote/push | **BLOCKED** pending authorization and remote URL |
-| Existing local `5432` app credentials | **BLOCKED**; requires administrator password reset |
 
 Do not describe the application as production-deployed until the unverified
 items above are completed and evidenced.

@@ -150,14 +150,15 @@ not reset or drop an existing database to apply changes.
 
 ## PostgreSQL verification evidence
 
-Against a disposable PostgreSQL 18 cluster on `127.0.0.1:55432` (not the
-existing local `5432` cluster):
+The opt-in integration suite ran against a disposable PostgreSQL 18 cluster on
+`127.0.0.1:55432`; it applies the real migrations, verifies timestamp awareness,
+cascade/restrict behavior, constraints, and ownership, then downgrades its
+dedicated test schema. It refuses to run against a database whose name does not
+contain `test`.
+
+The configured application database on `127.0.0.1:5432` was verified separately:
 
 ```text
-alembic upgrade head
-  0001_initial -> 0002_post_cover_image -> 0003_post_cover_image_path
-  -> 0004_engagement_profiles -> 0005_user_avatar
-
 alembic current
   0005_user_avatar (head)
 
@@ -165,16 +166,6 @@ alembic check
   No new upgrade operations detected.
 ```
 
-The opt-in integration suite applies the real migrations, verifies timestamp
-awareness, cascade/restrict behavior, constraints, and ownership, then
-downgrades its dedicated test schema. It refuses to run against a database whose
-name does not contain `test`.
-
-## Existing local cluster status
-
-The pre-existing PostgreSQL 18 service on `5432` is running, but the configured
-`blog_user` credentials fail `scram-sha-256` authentication. No database was
-reset, dropped, or modified. The application `.env` was not switched to the
-disposable verification cluster. See the final compliance report for the exact
-blocker and the safe remediation command, which requires the PostgreSQL
-administrator password.
+The configured `blog_user` credential authenticates, `/health` returns `200`
+with `"database": "reachable"`, and the live PostgreSQL API E2E passed `49/49`
+checks against that database. No database was reset, dropped, or modified.

@@ -42,6 +42,7 @@ Backend default suite:        175 passed, 1 skipped
 Backend with PostgreSQL:      179 passed
 PostgreSQL integration:       4 passed, 175 deselected
 Live PostgreSQL API E2E:      49/49 checks passed
+Configured PostgreSQL health: 200 (database reachable)
 Restart persistence:          PASS
 Frontend typecheck:           PASS
 Frontend unit tests:          47 passed
@@ -50,9 +51,12 @@ Frontend production build:    PASS (main chunk 299.47 kB, below 500 kB)
 Browser E2E (Playwright):     2 passed
 ```
 
-The existing local PostgreSQL service on `5432` still rejects the configured
-`blog_user` credentials, and no GitHub remote/push has been configured. Those
-two external/local items remain blockers; see the final compliance report.
+The configured PostgreSQL service on `5432` now authenticates successfully:
+`/health` returns `200` with `"database": "reachable"`, `alembic current` reports
+`0005_user_avatar (head)`, and the live PostgreSQL API E2E passed `49/49`
+checks against that configured database. The only remaining submission gate is
+GitHub publication: no remote is configured and no push has been authorized. See
+the final compliance report.
 
 ## Features
 
@@ -963,8 +967,10 @@ Current result with PostgreSQL:
 179 passed
 ```
 
-The PostgreSQL verification used a disposable PostgreSQL 18 cluster; the
-pre-existing `5432` cluster was not reset, dropped, or modified. See
+The PostgreSQL integration suite used a disposable PostgreSQL 18 cluster; the
+pre-existing `5432` cluster was not reset, dropped, or modified. The configured
+`5432` database was verified separately with `alembic current`, `alembic check`,
+`/health`, and the live PostgreSQL API E2E (`49/49`). See
 [the testing guide](docs/TESTING_GUIDE.md) for exact evidence and limitations.
 
 ### Frontend checks
@@ -1007,7 +1013,7 @@ npm run test:e2e
 Current result:
 
 ```text
-2 passed (13.9s)
+2 passed (15.3s)
 ```
 
 It covers registration, cover upload, publishing, commenting, liking,
@@ -1179,12 +1185,12 @@ public production deployment.
 - Rate limiting, refresh-token rotation, token revocation, email verification,
   draft/private posts, and deployment/TLS configuration are out of scope; see
   [Security notes](#security-notes).
-- The existing local PostgreSQL service on `5432` rejects the configured
-  `blog_user` credentials. The code and PostgreSQL evidence use a disposable
-  cluster; resetting the existing role requires the PostgreSQL administrator
-  password. See [Setup and installation](docs/SETUP_AND_INSTALLATION.md).
+- The configured local PostgreSQL `5432` credential now authenticates and the
+  application health check returns `200`. PostgreSQL integration tests still use
+  a disposable test database so they never truncate application data.
 - No GitHub remote or push has been configured. The repository is prepared
-  locally only; publishing requires an explicit remote URL and authorization.
+  locally and is GitHub-ready; publishing requires an explicit remote URL and
+  authorization.
 
 ## License
 

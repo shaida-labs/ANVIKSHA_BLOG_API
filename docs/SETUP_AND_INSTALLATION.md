@@ -85,29 +85,22 @@ Verify the application connection:
 fixture refuses to run unless the database name contains `test`, applies the
 real migrations, and truncates only its dedicated tables.
 
-### Existing local PostgreSQL blocker
+### Existing local PostgreSQL status
 
-The PostgreSQL 18 service is running on port `5432`, but the currently
-configured `blog_user` password fails `scram-sha-256` authentication. This is a
-credential mismatch, not an application code failure. No database was reset,
-dropped, or changed.
+The configured PostgreSQL 18 service on port `5432` now authenticates with the
+`blog_user` role. The application `.env` was updated and verified without
+resetting, dropping, or recreating the database:
 
-Safe remediation requires the PostgreSQL administrator password:
-
-```powershell
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost
+```text
+alembic current: 0005_user_avatar (head)
+alembic check:   No new upgrade operations detected.
+/health:         200, "database": "reachable"
 ```
 
-Then, after confirming the target role and database:
-
-```sql
-ALTER ROLE blog_user WITH LOGIN PASSWORD 'replace_with_a_new_strong_password';
-```
-
-Update the password in `.env` and URL-encode reserved characters such as `@` as
-`%40`. Do not delete or recreate the database. If the administrator password is
-not available, use a separate disposable PostgreSQL cluster for verification
-(as was done for this project) and do not modify the existing cluster.
+If the credential is ever rotated again, update the password in `.env` and
+URL-encode reserved characters such as `@` as `%40`. Do not delete or recreate
+the database. Use a separate disposable PostgreSQL cluster for integration
+tests so application data is never truncated.
 
 ## 4. Configure environment variables
 
@@ -327,9 +320,11 @@ $env:E2E_RESULTS = "C:\path\to\e2e-results.json"
 python scripts/e2e_postgres.py
 ```
 
-Use a disposable test database and test upload directory. Do not point these
-scripts at production data. The scripts write sanitized evidence only; they do
-not persist tokens or passwords.
+Use a disposable test database and test upload directory for repeat runs. Do not
+point these scripts at production data. The final verification used the
+configured local `blog_api_db` (which was empty), then removed the generated test
+users. The scripts write sanitized evidence only; they do not persist tokens or
+passwords.
 
 ## Troubleshooting
 

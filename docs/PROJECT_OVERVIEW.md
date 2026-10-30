@@ -130,10 +130,11 @@ Verification date: **2026-10-30**.
 | Generic 500 path | **PASS** | Automated unexpected-exception and database-error tests |
 | Frontend checks | **PASS** | Typecheck, `47/47` unit tests, production build |
 | Browser E2E | **PASS** | Playwright: register, upload cover, publish, comment, like, bookmark, library, edit, logout, protected route, second-user authorization, mobile overflow |
-| Existing local PostgreSQL on `5432` | **BLOCKED** | Configured `blog_user` credentials fail authentication; no admin password or reset authorization |
-| GitHub remote/push | **BLOCKED** | No remote configured and no push authorization; local repository prepared |
+| Configured local PostgreSQL on `5432` | **PASS** | `blog_user` authenticates; `/health` 200; Alembic head `0005_user_avatar`; live E2E `49/49` |
+| GitHub remote/push | **BLOCKED** | No remote configured and no push authorization; local repository is prepared and GitHub-ready |
 
-The disposable PostgreSQL cluster used for verification is not part of the
-repository and is not referenced by a committed environment file. See
+The disposable PostgreSQL cluster used for integration tests is not part of the
+repository and is not referenced by a committed environment file. The configured
+`5432` application database was verified separately without being reset. See
 `docs/internship-compliance/FINAL_INTERNSHIP_COMPLIANCE_REPORT.md` for the
-complete status and remaining blockers.
+complete status and remaining publication gate.

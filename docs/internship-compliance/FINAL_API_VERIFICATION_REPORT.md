@@ -3,10 +3,12 @@
 **Date:** 2026-10-30  
 **API version:** 1.0.0  
 **OpenAPI snapshot:** 18 paths / 29 operations  
-**Verification database:** disposable PostgreSQL 18.6 on `127.0.0.1:55432`  
-**Verified API process:** `http://127.0.0.1:8001` during live E2E  
+**Verification databases:** configured PostgreSQL 18.6 on `127.0.0.1:5432`
+(`blog_api_db`) for the final live E2E; disposable `127.0.0.1:55432` for
+integration tests<br>
+**Verified API process:** `http://127.0.0.1:8000` for the final live E2E<br>
 **Verdict for API implementation:** **PASS**  
-**Verdict for the existing configured local database:** **BLOCKED**
+**Verdict for the configured local database:** **PASS**
 
 ## 1. What was verified
 
@@ -187,14 +189,15 @@ restart.
 |---|---|
 | Core REST API functionality | **PASS** |
 | Authentication and ownership | **PASS** |
-| PostgreSQL behavior | **PASS** on disposable verified cluster |
+| PostgreSQL behavior | **PASS** on disposable integration cluster and configured `5432` database |
 | Uploads | **PASS** |
 | Error handling | **PASS** |
 | API documentation | **PASS** |
-| Existing configured `5432` database | **BLOCKED** |
+| Configured `5432` database | **PASS**; `/health` 200; Alembic head; live E2E `49/49` |
 | Production deployment/TLS/rate limiting | **NOT APPLICABLE** to the internship API gate; not implemented for production |
 
 The API implementation is functionally complete for the assignment. The
-configured local database blocker is an environment credential issue, not an
-endpoint implementation failure. It still prevents a claim that the current
-local `.env` is fully runnable.
+configured local database now authenticates, reports `200` health, is at Alembic
+head, and passed the live PostgreSQL E2E. The remaining submission action is
+GitHub publication, which requires an explicit remote URL and owner
+authorization.

@@ -13,27 +13,29 @@ audit files in this directory.
 
 The application code, database migrations, automated tests, API documentation,
 frontend build, and browser E2E suite are implemented and verified. The
-repository is prepared as an independent local Git repository. However, two
-external/local blockers remain:
+configured local PostgreSQL database on `5432` now authenticates and passes
+health, Alembic, and live E2E checks. The repository is prepared as an
+independent local Git repository.
 
-1. The existing local PostgreSQL service on `5432` rejects the configured
-   `blog_user` credentials. The application `.env` therefore produces a `503`
-   health response. Resetting the role requires the PostgreSQL administrator
-   password, which was not available.
-2. No GitHub remote is configured and no push authorization has been given. The
-   repository is local-only.
+One external publication gate remains:
 
-Until those are resolved, the correct submission status is **not fully
-submission ready**, even though the API itself passes its functional gates.
+1. No GitHub remote is configured and no push authorization has been given. The
+   repository is local-only and GitHub-ready.
+
+The local submission package is functionally complete. The verdict remains
+**not yet fully submission ready** only because the authorized public GitHub
+publication has not occurred.
 
 ## 2. Scope and method
 
 - Source was inspected and modified only where a verified defect or mandatory
   gap existed.
-- Existing databases were not reset, dropped, or truncated. The pre-existing
-  `5432` cluster was left untouched.
-- PostgreSQL verification used a disposable PostgreSQL 18 cluster on
+- Existing databases were not reset, dropped, or truncated. The configured
+  `5432` cluster was verified in place and left intact.
+- PostgreSQL integration tests used a disposable PostgreSQL 18 cluster on
   `127.0.0.1:55432`, with separate `anviksha_dev` and `anviksha_test` databases.
+  The configured `5432` database was verified separately with Alembic,
+  `/health`, and the live API E2E.
 - Verification used real HTTP requests, real PostgreSQL queries, real image
   bytes, real browser automation, and process restarts.
 - No commit or push was made to a public remote.
@@ -77,9 +79,9 @@ Status vocabulary: **PASS**, **PARTIAL**, **FAIL**, **BLOCKED**,
 | Frontend production build | **PASS** | route-level code splitting; main chunk 299.47 kB |
 | Browser E2E | **PASS** | Playwright `2 passed`; desktop journey and mobile overflow |
 | Security baseline | **PARTIAL** | Core auth/ownership/upload/error controls pass; rate limiting, TLS, revocation, CSP not implemented |
-| Existing local `5432` runtime | **BLOCKED** | Configured `blog_user` auth fails; health 503; no admin reset authorization |
+| Configured local `5432` runtime | **PASS** | `blog_user` authenticates; `/health` 200; Alembic head; live E2E `49/49` |
 | Independent local Git repository | **PASS** | Initialized in `blog-api`; local commit `a24a535`; staged-file audit documented in the checklist |
-| GitHub remote/push | **BLOCKED** | No remote, no push authorization |
+| GitHub remote/push | **BLOCKED** | No remote, no push authorization; local repository is GitHub-ready |
 | Deployment | **NOT APPLICABLE** | Not required for the internship API assignment; deployment guide is documentation only and not executed |
 | CI/CD pipeline | **NOT APPLICABLE** | No CI workflow is included or claimed |
 
@@ -93,9 +95,13 @@ Status vocabulary: **PASS**, **PARTIAL**, **FAIL**, **BLOCKED**,
   database errors as sanitized generic 500 responses.
 - Verified the full suite against real PostgreSQL, not only SQLite.
 - Verified Alembic from an empty database, at head, with no drift.
+- Re-verified the configured `5432` application database in place: connection
+  PASS, `/health` 200, Alembic head, and live E2E `49/49`.
 - Verified real image upload and static serving against PostgreSQL.
 - Verified two-user ownership and authorization with real JWTs.
 - Verified restart persistence for a post and its cover image.
+- Removed the generated E2E users after the configured-database run, returning
+  the database to its pre-run state.
 - Installed the backend in a clean temporary virtual environment from
   `requirements.txt`; `pip check` is clean.
 
@@ -130,9 +136,9 @@ Status vocabulary: **PASS**, **PARTIAL**, **FAIL**, **BLOCKED**,
 
 | Gate | Exact result |
 |---|---|
-| Default backend suite | `175 passed, 1 skipped in 24.15s` |
-| PostgreSQL integration selection | `4 passed, 175 deselected in 1.72s` |
-| Full suite with PostgreSQL | `179 passed in 25.53s` |
+| Default backend suite | `175 passed, 1 skipped in 21.66s` |
+| PostgreSQL integration selection | `4 passed, 175 deselected in 1.85s` |
+| Full suite with PostgreSQL | `179 passed in 17.98s` |
 | Live PostgreSQL API E2E | `49/49 checks passed` |
 | Restart persistence | create: PASS; verify: PASS |
 | Alembic current | `0005_user_avatar (head)` |
@@ -143,50 +149,32 @@ Status vocabulary: **PASS**, **PARTIAL**, **FAIL**, **BLOCKED**,
 | Frontend unit tests | `47 passed` in 11 files |
 | Frontend lint | 25 warnings, 0 errors |
 | Frontend build | PASS; main chunk 299.47 kB; no >500 kB warning |
-| Browser E2E | `2 passed (13.9s)` |
+| Browser E2E | `2 passed (15.3s)` |
 | OpenAPI | 18 paths / 29 operations |
-| Current `.env` database health | `503`; configured `5432` auth fails |
+| Configured `.env` database health | `200`; `"database": "reachable"` |
+| Configured `5432` live E2E | `49/49` checks passed |
 | Project Git remote | none configured |
 | Project push | not performed |
 
-## 6. Remaining blockers and exact remediation
+## 6. Remaining gate and exact remediation
 
-### Blocker A - existing local PostgreSQL credentials
+### Resolved - configured local PostgreSQL credentials
 
-Observed safely: the application `.env` points at
-`localhost:5432/blog_api_db`, role `blog_user`, and the configured password is
-present. A real SQLAlchemy connection attempt raises `OperationalError`; the
-application `/health` endpoint returns `503`. No database was changed.
+The application `.env` points at `localhost:5432/blog_api_db` with role
+`blog_user`. A real connection now succeeds, `/health` returns `200` with
+`"database": "reachable"`, `alembic current` reports `0005_user_avatar (head)`,
+and `alembic check` reports no drift. The live PostgreSQL API E2E passed `49/49`
+checks against this database. No database was reset, dropped, or recreated.
 
-Required remediation, with PostgreSQL administrator access:
+The `.env` file was updated after the earlier credential failure; the old
+credential is no longer used. The exposed credential should still be considered
+compromised and must not be reused. Never commit `.env`, uploads, databases,
+JWTs, or passwords.
 
-```powershell
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost
-```
-
-```sql
-ALTER ROLE blog_user WITH LOGIN PASSWORD '<new-strong-password>';
-```
-
-Then update `.env` with the new password (URL-encode reserved characters such as
-`@` as `%40`) and verify:
-
-```powershell
-python -m alembic current
-Invoke-RestMethod http://127.0.0.1:8000/health
-```
-
-Do not drop or recreate the database. If the administrator password is not
-available, use a separate disposable cluster for local verification or ask the
-PostgreSQL owner to perform the reset. The existing role password should be
-rotated because a diagnostic command in the local verification log echoed the
-configured URL; the secret was not written to the repository, but rotation is the
-safe response to any credential exposure.
-
-### Blocker B - GitHub remote and push
+### Publication gate - GitHub remote and push
 
 The project has an independent local repository. No remote exists and no push
-has been made. Required before public submission:
+has been made. The repository is GitHub-ready. Required before public submission:
 
 1. Create an empty GitHub repository owned by the student.
 2. Add the remote after reviewing the staged file list:
@@ -211,9 +199,9 @@ git push -u origin main
 
 ## 7. Final compliance statement
 
-The core internship API requirements are **PASS** on the verified disposable
-PostgreSQL environment. The repository is substantially complete and ready for
-a local commit. It is **not yet fully submission ready** because the configured
-local database cannot authenticate and no GitHub remote/push exists. The
-remaining actions require the PostgreSQL administrator password and explicit
-GitHub authorization; they cannot be safely invented or bypassed.
+The core internship API requirements are **PASS** on both the configured
+PostgreSQL database and the disposable integration environment. The repository
+is complete, tested, documented, and GitHub-ready locally. It remains **not yet
+fully submission ready** only because no authorized GitHub remote/push exists.
+The remaining action requires the repository URL and explicit owner
+authorization; it cannot be safely invented or bypassed.

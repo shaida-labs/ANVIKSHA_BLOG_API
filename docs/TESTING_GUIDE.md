@@ -5,10 +5,11 @@
 All results below were produced on **2026-10-30** on Windows 11 with Python
 3.14.7, Node.js 24.20.0, npm 11.19.0, and PostgreSQL 18.6.
 
-The PostgreSQL verification used a disposable cluster on
-`127.0.0.1:55432`. The pre-existing local PostgreSQL service on `5432` was not
-reset, dropped, or modified. The application `.env` was not switched to the
-disposable cluster.
+PostgreSQL integration tests used a disposable cluster on `127.0.0.1:55432` so
+the application database was never truncated. The configured local PostgreSQL
+service on `5432` was verified separately with Alembic, `/health`, and the live
+API E2E; it was not reset, dropped, or modified. The application `.env` remains
+pointed at `5432`.
 
 ## Test layers
 
@@ -34,7 +35,7 @@ python -m pytest -q
 Result:
 
 ```text
-175 passed, 1 skipped in 24.15s
+175 passed, 1 skipped in 21.66s
 ```
 
 The skipped test is `tests/integration/test_postgres_integration.py` because
@@ -52,7 +53,7 @@ python -m pytest -m integration -q
 Result:
 
 ```text
-4 passed, 175 deselected in 1.72s
+4 passed, 175 deselected in 1.85s
 ```
 
 The integration fixture:
@@ -75,7 +76,7 @@ python -m pytest -q
 Result:
 
 ```text
-179 passed in 25.53s
+179 passed in 17.98s
 ```
 
 This is the authoritative full-suite result: 175 default tests plus 4 real
@@ -163,8 +164,11 @@ Result:
 ```
 
 The script writes sanitized results only. It redacts `access_token`, `password`,
-`hashed_password`, and `token` fields. It still uses a disposable test database
-and test upload directory; do not point it at production data.
+`hashed_password`, and `token` fields. The final run used the configured `5432`
+database on `http://127.0.0.1:8000`; the two generated test users were deleted
+afterward and the database returned to its pre-run state. For repeat runs, use a
+dedicated test database and test upload directory; do not point the script at
+production data.
 
 ### Running the live E2E script
 
@@ -259,7 +263,7 @@ npm run test:e2e
 Result:
 
 ```text
-2 passed (13.9s)
+2 passed (15.3s)
 ```
 
 Covered journeys:
@@ -293,8 +297,9 @@ URL. The `.env.local` file is gitignored.
   and size based.
 - No production deployment was performed, so deployment-specific TLS, reverse
   proxy, process supervision, and object-storage behavior are not verified.
-- The existing local PostgreSQL `5432` credential blocker prevents running the
-  app with the current `.env`; see the final compliance report.
+- The configured local PostgreSQL `5432` credential now authenticates; `/health`
+  returns `200` with `"database": "reachable"`. Integration tests still use a
+  disposable test database so application tables are never truncated.
 
 ## Acceptance summary
 
@@ -312,5 +317,5 @@ URL. The `.env.local` file is gitignored.
 | Frontend lint | **PASS with warnings** | 25 warnings, 0 errors |
 | Production build | **PASS** | main chunk below 500 kB |
 | Browser E2E | **PASS** | `2 passed` |
-| Existing local `5432` database | **BLOCKED** | credential mismatch; no admin reset authorization |
+| Configured local `5432` database | **PASS** | `/health` 200; Alembic head; live E2E `49/49` |
 | GitHub push | **BLOCKED** | no remote and no push authorization |

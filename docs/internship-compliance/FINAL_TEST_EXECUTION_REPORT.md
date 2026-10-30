@@ -6,17 +6,18 @@
 **Node.js:** 24.20.0  
 **npm:** 11.19.0  
 **PostgreSQL:** 18.6  
-**Verification database:** disposable cluster on `127.0.0.1:55432`  
-**Overall functional test verdict:** **PASS**  
-**Configured local database gate:** **BLOCKED**
+**Verification databases:** disposable cluster on `127.0.0.1:55432` for
+integration tests; configured `127.0.0.1:5432` for health, Alembic, and live E2E<br>
+**Overall functional test verdict:** **PASS**<br>
+**Configured local database gate:** **PASS**
 
 ## 1. Summary
 
 | Test gate | Result | Status |
 |---|---|---|
-| Backend default suite | `175 passed, 1 skipped in 24.15s` | **PASS** |
-| PostgreSQL integration selection | `4 passed, 175 deselected in 1.72s` | **PASS** |
-| Complete backend suite with PostgreSQL | `179 passed in 25.53s` | **PASS** |
+| Backend default suite | `175 passed, 1 skipped in 21.66s` | **PASS** |
+| PostgreSQL integration selection | `4 passed, 175 deselected in 1.85s` | **PASS** |
+| Complete backend suite with PostgreSQL | `179 passed in 17.98s` | **PASS** |
 | Live PostgreSQL HTTP E2E | `49/49 checks passed` | **PASS** |
 | Restart persistence | create and verify both pass | **PASS** |
 | Alembic upgrade/current/check | head `0005_user_avatar`; no drift | **PASS** |
@@ -27,8 +28,8 @@
 | Frontend unit tests | `47 passed` in 11 files | **PASS** |
 | Frontend lint | 25 warnings, 0 errors | **PASS** |
 | Frontend production build | PASS; main chunk 299.47 kB | **PASS** |
-| Browser E2E (Playwright) | `2 passed (13.9s)` | **PASS** |
-| Existing `.env` database connection | SQLAlchemy `OperationalError`; health 503 | **BLOCKED** |
+| Browser E2E (Playwright) | `2 passed (15.3s)` | **PASS** |
+| Configured `.env` database connection | connection PASS; `/health` 200; Alembic head | **PASS** |
 | GitHub remote/push | none configured | **BLOCKED** |
 
 ## 2. Backend default suite
@@ -42,7 +43,7 @@ Command:
 Output:
 
 ```text
-175 passed, 1 skipped in 24.15s
+175 passed, 1 skipped in 21.66s
 ```
 
 The skip is:
@@ -69,7 +70,7 @@ $env:ENVIRONMENT = "test"
 Output:
 
 ```text
-4 passed, 175 deselected in 1.72s
+4 passed, 175 deselected in 1.85s
 ```
 
 The integration fixture applies real Alembic migrations, refuses a database name
@@ -81,7 +82,7 @@ schema.
 Output:
 
 ```text
-179 passed in 25.53s
+179 passed in 17.98s
 ```
 
 This is 175 default tests plus 4 real PostgreSQL integration tests.
@@ -113,7 +114,9 @@ The migration chain was applied from an empty disposable database:
 0005_user_avatar
 ```
 
-No existing database was reset or dropped.
+The configured `5432` application database was also checked in place:
+`alembic current` reports `0005_user_avatar (head)` and `alembic check` reports
+no drift. No existing database was reset or dropped.
 
 ## 6. Live PostgreSQL API E2E
 
@@ -125,10 +128,13 @@ Output:
 49/49 checks passed
 ```
 
-The script performs real HTTP requests against Uvicorn, uses real JWTs, creates
-two users, exercises post/comment CRUD, checks ownership failures, uploads real
-image bytes, verifies static serving, checks private library isolation, and
-queries PostgreSQL directly. It redacts tokens and passwords in its results.
+The final run performed real HTTP requests against Uvicorn on
+`http://127.0.0.1:8000`, backed by the configured `5432` database. It used real
+JWTs, created two users, exercised post/comment CRUD, checked ownership
+failures, uploaded real image bytes, verified static serving, checked private
+library isolation, and queried PostgreSQL directly. The generated test users
+were removed afterward and the database returned to its pre-run state. The
+script redacts tokens and passwords in its results.
 
 ## 7. Restart persistence
 
@@ -222,7 +228,7 @@ Output:
 Running 2 tests using 1 worker
 ✓ reader can register, publish, engage, edit, and sign out
 ✓ mobile layout has no horizontal overflow
-2 passed (13.9s)
+2 passed (15.3s)
 ```
 
 The browser suite covered:
@@ -245,25 +251,26 @@ The backend was running on `http://127.0.0.1:8001` with the disposable
 PostgreSQL database; `frontend/.env.local` pointed at that backend. The Vite dev
 server was started/reused by Playwright.
 
-## 11. Existing configured database failure
+## 11. Configured local database verification
 
-A safe SQLAlchemy connection check using the current `.env` produced:
-
-```text
-configured_db_connect=FAIL
-exception_class=OperationalError
-driver_exception_class=OperationalError
-```
-
-A Uvicorn process using the current `.env` returned:
+A safe SQLAlchemy connection check using the current `.env` now succeeds:
 
 ```text
-health_status=503
+configured_db_connect=PASS
+select_1=1
 ```
 
-This is a credential/environment blocker. It is not a test failure in the API
-implementation, but it prevents claiming the current local `.env` is runnable.
-No database was reset, dropped, or modified.
+The running Uvicorn process using the current `.env` returned:
+
+```text
+health_status=200
+{"status":"healthy","database":"reachable","service":"anviksha-api","project_id":"ANVIKSHA"}
+```
+
+`alembic current` reports `0005_user_avatar (head)` and `alembic check` reports
+`No new upgrade operations detected.` The live PostgreSQL API E2E passed
+`49/49` checks against this database. No existing database was reset, dropped,
+or modified.
 
 ## 12. Not executed or not verified
 
@@ -276,13 +283,12 @@ No database was reset, dropped, or modified.
 | Load/concurrency testing | **NOT VERIFIED** - no load test |
 | WCAG/axe audit | **NOT VERIFIED** - no automated accessibility audit |
 | Rate limiting/brute-force test | **NOT APPLICABLE** - control not implemented |
-| Existing local `5432` DB run | **BLOCKED** - credential mismatch |
+| Configured local `5432` DB run | **PASS** - health 200, Alembic head, live E2E 49/49 |
 | GitHub remote/push | **BLOCKED** - no remote/authorization |
 
 ## 13. Final test verdict
 
-All committed functional test gates pass on the verified environment. The only
-failing runtime gate is the pre-existing local PostgreSQL credential, which is
-**BLOCKED** pending administrator access. The repository should not be described
-as fully submission-ready until that credential is fixed and a GitHub remote is
-authorized.
+All committed functional test gates pass on the verified environment, including
+the configured local PostgreSQL database. The only remaining submission action
+is GitHub publication, which requires an explicit remote URL and owner
+authorization.
