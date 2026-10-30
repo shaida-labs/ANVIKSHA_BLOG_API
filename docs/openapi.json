@@ -1,0 +1,2780 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ANVIKSHA API",
+    "description": "ANVIKSHA is a database-backed knowledge publishing platform built with FastAPI, PostgreSQL, SQLAlchemy 2.x, and JWT authentication.\n\n**Question Deeper. Understand Better.**\n\n### Authorization policy\n- All create, update, and delete endpoints require a Bearer JWT.\n- Only a post's or comment's author may modify or delete it.\n- Existing resources owned by another user return `403 Forbidden`.\n- Missing resources return `404 Not Found`.\n- A deleted post deletes its comments through `ON DELETE CASCADE`.\n- Users with existing content cannot be deleted (`ON DELETE RESTRICT`); no user-deletion endpoint is exposed.\n\nUse `POST /login` to obtain a token, then click **Authorize** and paste it.",
+    "contact": {
+      "name": "ANVIKSHA \u2014 Knowledge Platform for Curious Minds"
+    },
+    "license": {
+      "name": "MIT"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Register a new user",
+        "description": "Create an account. Usernames and emails are normalized to lowercase and must be unique. Passwords are hashed with Argon2id.",
+        "operationId": "register_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Username or email is already registered."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Log in and obtain a JWT access token",
+        "description": "Authenticate with email and password. Use the returned token as a Bearer token.",
+        "operationId": "login_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Incorrect credentials or missing/invalid token."
+          },
+          "403": {
+            "description": "The user account is inactive."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get the authenticated user",
+        "operationId": "read_current_user_users_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, malformed, expired, or invalid token."
+          },
+          "403": {
+            "description": "The user account is inactive."
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Authors"
+        ],
+        "summary": "Update the authenticated user's public profile",
+        "description": "Requires authentication. Only the current user can update their display name and biography. Email and username are not changed by this endpoint.",
+        "operationId": "edit_current_profile_users_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/posts": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "List posts",
+        "description": "Public endpoint. Returns community-wide posts ordered by creation date (newest first by default) with pagination metadata. Optional search matches title or content case-insensitively. Each post includes its cover image reference and real comment count.",
+        "operationId": "read_posts_posts_get",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Page size.",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Page size."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of posts to skip.",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of posts to skip."
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional title or content search.",
+              "title": "Search"
+            },
+            "description": "Optional title or content search."
+          },
+          {
+            "name": "topic",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional exact topic filter.",
+              "title": "Topic"
+            },
+            "description": "Optional exact topic filter."
+          },
+          {
+            "name": "author",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 50
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional author username filter.",
+              "title": "Author"
+            },
+            "description": "Optional author username filter."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "newest",
+                "oldest",
+                "title",
+                "popular"
+              ],
+              "type": "string",
+              "description": "Sort order: newest, oldest, title, or popular.",
+              "default": "newest",
+              "title": "Sort"
+            },
+            "description": "Sort order: newest, oldest, title, or popular."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_PostRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid pagination, search, or sort parameter."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Create a post",
+        "description": "Requires authentication. The author is always the authenticated user. cover_image_path is optional and must reference an image returned by POST /uploads/images. Remote image URLs are rejected.",
+        "operationId": "create_new_post_posts_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "422": {
+            "description": "Validation error, including author_id in the body."
+          }
+        }
+      }
+    },
+    "/posts/mine": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "List the authenticated user's posts",
+        "description": "Requires authentication. Returns only posts authored by the authenticated user. Search and sorting are applied on the server.",
+        "operationId": "read_my_posts_posts_mine_get",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Page size.",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Page size."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of posts to skip.",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of posts to skip."
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional search.",
+              "title": "Search"
+            },
+            "description": "Optional search."
+          },
+          {
+            "name": "topic",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional exact topic filter.",
+              "title": "Topic"
+            },
+            "description": "Optional exact topic filter."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "newest",
+                "oldest",
+                "title",
+                "popular"
+              ],
+              "type": "string",
+              "description": "Sort order: newest, oldest, title, or popular.",
+              "default": "newest",
+              "title": "Sort"
+            },
+            "description": "Sort order: newest, oldest, title, or popular."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_PostRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "422": {
+            "description": "Invalid pagination, search, or sort parameter."
+          }
+        }
+      }
+    },
+    "/posts/{post_id}": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Get a post",
+        "description": "Public endpoint. Returns 404 when the post does not exist.",
+        "operationId": "read_post_posts__post_id__get",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Post Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Replace an owned post",
+        "description": "Requires authentication and ownership. This is a full replacement: title and content are required. Send cover_image_path to keep or change the uploaded image, or send null (or omit it) to remove it. created_at is never changed.",
+        "operationId": "replace_post_posts__post_id__put",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Post Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "403": {
+            "description": "The authenticated user does not own this post."
+          },
+          "404": {
+            "description": "Post not found."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Delete an owned post",
+        "description": "Requires authentication and ownership. Related comments are deleted by the database via ON DELETE CASCADE.",
+        "operationId": "remove_post_posts__post_id__delete",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Post Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Post deleted; no response body."
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "403": {
+            "description": "The authenticated user does not own this post."
+          },
+          "404": {
+            "description": "Post not found."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/posts/{post_id}/like": {
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Like a post",
+        "description": "Requires authentication. Likes are unique per user and post; repeating the request is idempotent and returns the current real like count.",
+        "operationId": "add_like_posts__post_id__like_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Post Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LikeState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "404": {
+            "description": "Post not found."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Remove a like",
+        "description": "Requires authentication. Removing a like is idempotent and returns the current real like count.",
+        "operationId": "remove_like_posts__post_id__like_delete",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Post Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LikeState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "404": {
+            "description": "Post not found."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/posts/{post_id}/bookmark": {
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Save a post to the library",
+        "description": "Requires authentication. A bookmark is unique per user and post; repeating the request is idempotent. An optional collection label can be supplied in the JSON body.",
+        "operationId": "add_bookmark_posts__post_id__bookmark_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Post Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/BookmarkUpdate"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "404": {
+            "description": "Post not found."
+          },
+          "422": {
+            "description": "Invalid collection label."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Remove a post from the library",
+        "description": "Requires authentication. Removing a bookmark is idempotent.",
+        "operationId": "remove_saved_post_posts__post_id__bookmark_delete",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Post Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "404": {
+            "description": "Post not found."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Move a saved post to a collection",
+        "description": "Requires authentication and an existing bookmark. Send a collection label, or null to move the saved post back to Unsorted.",
+        "operationId": "change_bookmark_collection_posts__post_id__bookmark_patch",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Post Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookmarkUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "404": {
+            "description": "Post or bookmark not found."
+          },
+          "422": {
+            "description": "Invalid collection label."
+          }
+        }
+      }
+    },
+    "/comments": {
+      "get": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "List comments for a post",
+        "description": "Public endpoint. post_id is required. Returns comments in chronological order with pagination metadata.",
+        "operationId": "read_comments_comments_get",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "description": "ID of an existing post.",
+              "title": "Post Id"
+            },
+            "description": "ID of an existing post."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Page size.",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Page size."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of comments to skip.",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of comments to skip."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_CommentRead_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found."
+          },
+          "422": {
+            "description": "Missing or invalid post_id / pagination parameter."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Create a comment",
+        "description": "Requires authentication. The post must exist and the author is always the authenticated user.",
+        "operationId": "create_new_comment_comments_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "404": {
+            "description": "Post not found."
+          },
+          "422": {
+            "description": "Validation error, including author_id in the body."
+          }
+        }
+      }
+    },
+    "/comments/{comment_id}": {
+      "get": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Get a comment",
+        "description": "Public endpoint. Returns 404 when the comment does not exist.",
+        "operationId": "read_comment_comments__comment_id__get",
+        "parameters": [
+          {
+            "name": "comment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Comment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Comment not found."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Update an owned comment",
+        "description": "Requires authentication and ownership. post_id and author_id cannot be changed; created_at is never changed.",
+        "operationId": "replace_comment_comments__comment_id__put",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "comment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Comment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "403": {
+            "description": "The authenticated user does not own this comment."
+          },
+          "404": {
+            "description": "Comment not found."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Delete an owned comment",
+        "description": "Requires authentication and ownership.",
+        "operationId": "remove_comment_comments__comment_id__delete",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "comment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Comment Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Comment deleted; no response body."
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "403": {
+            "description": "The authenticated user does not own this comment."
+          },
+          "404": {
+            "description": "Comment not found."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uploads/images": {
+      "post": {
+        "tags": [
+          "Uploads"
+        ],
+        "summary": "Upload a cover image",
+        "description": "Requires authentication. Accepts a multipart/form-data image field. The backend validates the actual bytes, dimensions, and size, then returns a relative path to use as cover_image_path on a post.",
+        "operationId": "upload_image_uploads_images_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_image_uploads_images_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadedImageRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "413": {
+            "description": "The image exceeds the configured size limit."
+          },
+          "415": {
+            "description": "The file is not a supported JPEG, PNG, or WebP image."
+          },
+          "422": {
+            "description": "The image is empty or has invalid dimensions."
+          },
+          "500": {
+            "description": "The image could not be stored."
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/bookmarks/collections": {
+      "get": {
+        "tags": [
+          "Library"
+        ],
+        "summary": "List the authenticated user's collections",
+        "description": "Requires authentication. Returns only collection labels that are currently attached to this user's saved posts, with real counts.",
+        "operationId": "read_collections_bookmarks_collections_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BookmarkCollectionRead"
+                  },
+                  "type": "array",
+                  "title": "Response Read Collections Bookmarks Collections Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/bookmarks": {
+      "get": {
+        "tags": [
+          "Library"
+        ],
+        "summary": "List the authenticated user's saved posts",
+        "description": "Requires authentication. Returns only the current user's bookmarks, with real post engagement counts and optional search, topic, collection, and sort controls.",
+        "operationId": "read_bookmarks_bookmarks_get",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Page size.",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Page size."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of saved posts to skip.",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Number of saved posts to skip."
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional title or content search.",
+              "title": "Search"
+            },
+            "description": "Optional title or content search."
+          },
+          {
+            "name": "topic",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional exact topic filter.",
+              "title": "Topic"
+            },
+            "description": "Optional exact topic filter."
+          },
+          {
+            "name": "collection",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional collection label.",
+              "title": "Collection"
+            },
+            "description": "Optional collection label."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "saved_newest",
+                "saved_oldest",
+                "title"
+              ],
+              "type": "string",
+              "description": "Sort order: saved_newest, saved_oldest, or title.",
+              "default": "saved_newest",
+              "title": "Sort"
+            },
+            "description": "Sort order: saved_newest, saved_oldest, or title."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_BookmarkedPost_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "422": {
+            "description": "Invalid pagination, search, or sort parameter."
+          }
+        }
+      }
+    },
+    "/users/me/avatar": {
+      "post": {
+        "tags": [
+          "Authors"
+        ],
+        "summary": "Upload or replace the authenticated user's profile picture",
+        "description": "Requires authentication. Accepts a multipart/form-data image field. The backend validates the bytes, dimensions, and size, stores the image server-side, and replaces any previous profile picture.",
+        "operationId": "upload_current_avatar_users_me_avatar_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_current_avatar_users_me_avatar_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          },
+          "413": {
+            "description": "The image exceeds the configured size limit."
+          },
+          "415": {
+            "description": "The file is not a supported JPEG, PNG, or WebP image."
+          },
+          "422": {
+            "description": "The image is empty or has invalid dimensions."
+          },
+          "500": {
+            "description": "The image could not be stored."
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Authors"
+        ],
+        "summary": "Remove the authenticated user's profile picture",
+        "description": "Requires authentication. Clears the stored profile picture and removes the unused image file from local storage.",
+        "operationId": "delete_current_avatar_users_me_avatar_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid authentication token."
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/users/{username}": {
+      "get": {
+        "tags": [
+          "Authors"
+        ],
+        "summary": "Get a public author profile",
+        "description": "Public endpoint. Returns only public author information and genuine counts derived from stored posts, comments, and likes. Email addresses are never exposed.",
+        "operationId": "read_author_profile_users__username__get",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 50,
+              "title": "Username"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Author not found."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/topics": {
+      "get": {
+        "tags": [
+          "Topics"
+        ],
+        "summary": "List real topics with post counts",
+        "description": "Public endpoint. Returns only topics that currently have published posts, plus a General entry for posts without a topic. Counts are derived from stored posts, not fabricated trending metrics.",
+        "operationId": "read_topics_topics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TopicRead"
+                  },
+                  "type": "array",
+                  "title": "Response Read Topics Topics Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "General"
+        ],
+        "summary": "API information",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "General"
+        ],
+        "summary": "Application and database health",
+        "description": "Verifies that the API process is running and that a database query succeeds. Returns 503 when the database is unreachable.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database is unavailable."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_upload_current_avatar_users_me_avatar_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "JPEG, PNG, or WebP image."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_current_avatar_users_me_avatar_post"
+      },
+      "Body_upload_image_uploads_images_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "JPEG, PNG, or WebP image."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_image_uploads_images_post"
+      },
+      "BookmarkCollectionRead": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "count"
+        ],
+        "title": "BookmarkCollectionRead"
+      },
+      "BookmarkState": {
+        "properties": {
+          "bookmarked": {
+            "type": "boolean",
+            "title": "Bookmarked"
+          },
+          "collection": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collection"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bookmarked"
+        ],
+        "title": "BookmarkState"
+      },
+      "BookmarkUpdate": {
+        "properties": {
+          "collection": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collection"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "BookmarkUpdate"
+      },
+      "BookmarkedPost": {
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic"
+          },
+          "cover_image_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Image Path"
+          },
+          "cover_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Image Url"
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count",
+            "default": 0
+          },
+          "like_count": {
+            "type": "integer",
+            "title": "Like Count",
+            "default": 0
+          },
+          "liked_by_me": {
+            "type": "boolean",
+            "title": "Liked By Me",
+            "default": false
+          },
+          "bookmarked_by_me": {
+            "type": "boolean",
+            "title": "Bookmarked By Me",
+            "default": false
+          },
+          "author_id": {
+            "type": "integer",
+            "title": "Author Id"
+          },
+          "author": {
+            "$ref": "#/components/schemas/UserSummary"
+          },
+          "bookmarked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Bookmarked At"
+          },
+          "collection": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collection"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "updated_at",
+          "id",
+          "title",
+          "excerpt",
+          "content",
+          "topic",
+          "cover_image_path",
+          "cover_image_url",
+          "author_id",
+          "author",
+          "bookmarked_at"
+        ],
+        "title": "BookmarkedPost"
+      },
+      "CommentCreate": {
+        "properties": {
+          "post_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Post Id",
+            "description": "ID of an existing post."
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Content"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "post_id",
+          "content"
+        ],
+        "title": "CommentCreate",
+        "example": {
+          "content": "This is a thoughtful comment.",
+          "post_id": 1
+        }
+      },
+      "CommentRead": {
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "post_id": {
+            "type": "integer",
+            "title": "Post Id"
+          },
+          "author_id": {
+            "type": "integer",
+            "title": "Author Id"
+          },
+          "author": {
+            "$ref": "#/components/schemas/UserSummary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "updated_at",
+          "id",
+          "content",
+          "post_id",
+          "author_id",
+          "author"
+        ],
+        "title": "CommentRead"
+      },
+      "CommentUpdate": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Content"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "CommentUpdate",
+        "example": {
+          "content": "An updated comment."
+        }
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "healthy",
+            "title": "Status"
+          },
+          "database": {
+            "type": "string",
+            "const": "reachable",
+            "title": "Database"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "project_id": {
+            "type": "string",
+            "title": "Project Id",
+            "default": "ANVIKSHA"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "database",
+          "service"
+        ],
+        "title": "HealthResponse"
+      },
+      "LikeState": {
+        "properties": {
+          "liked": {
+            "type": "boolean",
+            "title": "Liked"
+          },
+          "like_count": {
+            "type": "integer",
+            "title": "Like Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "liked",
+          "like_count"
+        ],
+        "title": "LikeState"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "example": {
+          "email": "jane@example.com",
+          "password": "StrongPass123"
+        }
+      },
+      "Page_BookmarkedPost_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BookmarkedPost"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[BookmarkedPost]"
+      },
+      "Page_CommentRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CommentRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[CommentRead]"
+      },
+      "Page_PostRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PostRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[PostRead]"
+      },
+      "PostCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 50000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic"
+          },
+          "cover_image_path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Image Path",
+            "description": "Relative key returned by POST /uploads/images. Omit or send null for no cover image. Arbitrary remote URLs are not accepted."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "content"
+        ],
+        "title": "PostCreate",
+        "example": {
+          "content": "This is the content of my first ANVIKSHA story.",
+          "cover_image_path": "covers/2026/10/7a5d9e4f3c2b1a0f9e8d7c6b5a4f3e2d.jpg",
+          "excerpt": "A short introduction to the story.",
+          "title": "Question deeper",
+          "topic": "Technology"
+        }
+      },
+      "PostRead": {
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic"
+          },
+          "cover_image_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Image Path"
+          },
+          "cover_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Image Url"
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count",
+            "default": 0
+          },
+          "like_count": {
+            "type": "integer",
+            "title": "Like Count",
+            "default": 0
+          },
+          "liked_by_me": {
+            "type": "boolean",
+            "title": "Liked By Me",
+            "default": false
+          },
+          "bookmarked_by_me": {
+            "type": "boolean",
+            "title": "Bookmarked By Me",
+            "default": false
+          },
+          "author_id": {
+            "type": "integer",
+            "title": "Author Id"
+          },
+          "author": {
+            "$ref": "#/components/schemas/UserSummary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "updated_at",
+          "id",
+          "title",
+          "excerpt",
+          "content",
+          "topic",
+          "cover_image_path",
+          "cover_image_url",
+          "author_id",
+          "author"
+        ],
+        "title": "PostRead"
+      },
+      "PostUpdate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 50000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic"
+          },
+          "cover_image_path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Image Path",
+            "description": "Relative key returned by POST /uploads/images. Omit or send null for no cover image. Arbitrary remote URLs are not accepted."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "content"
+        ],
+        "title": "PostUpdate",
+        "example": {
+          "content": "The article has been fully replaced.",
+          "cover_image_path": "covers/2026/10/7a5d9e4f3c2b1a0f9e8d7c6b5a4f3e2d.jpg",
+          "excerpt": "An updated introduction.",
+          "title": "Question deeper",
+          "topic": "Technology"
+        }
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "const": "bearer",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "description": "Access token lifetime in seconds."
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "expires_in"
+        ],
+        "title": "TokenResponse"
+      },
+      "TopicRead": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "count"
+        ],
+        "title": "TopicRead"
+      },
+      "UploadedImageRead": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path",
+            "description": "Relative storage key to send back as cover_image_path."
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Relative URL served by this API."
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Size"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Height"
+          }
+        },
+        "type": "object",
+        "required": [
+          "path",
+          "url",
+          "content_type",
+          "size",
+          "width",
+          "height"
+        ],
+        "title": "UploadedImageRead"
+      },
+      "UserCreate": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "pattern": "^[a-z0-9_.-]+$",
+            "title": "Username",
+            "description": "3-50 characters: letters, numbers, dots, underscores, hyphens."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "A valid email address; stored lowercase."
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "description": "8-128 characters with at least one letter and one digit."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "username",
+          "email",
+          "password"
+        ],
+        "title": "UserCreate",
+        "example": {
+          "email": "jane@example.com",
+          "password": "StrongPass123",
+          "username": "jane_doe"
+        }
+      },
+      "UserProfileRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "avatar_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Path"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "post_count": {
+            "type": "integer",
+            "title": "Post Count",
+            "default": 0
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count",
+            "default": 0
+          },
+          "likes_received": {
+            "type": "integer",
+            "title": "Likes Received",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "display_name",
+          "bio",
+          "created_at"
+        ],
+        "title": "UserProfileRead"
+      },
+      "UserProfileUpdate": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "UserProfileUpdate"
+      },
+      "UserRead": {
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "avatar_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Path"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created_at",
+          "updated_at",
+          "id",
+          "username",
+          "email",
+          "display_name",
+          "bio",
+          "is_active"
+        ],
+        "title": "UserRead"
+      },
+      "UserSummary": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "avatar_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Path"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username"
+        ],
+        "title": "UserSummary"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "description": "Paste the JWT access token returned by POST /login.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "General",
+      "description": "Service metadata and database-aware health check."
+    },
+    {
+      "name": "Authentication",
+      "description": "Registration, login, and current-user lookup."
+    },
+    {
+      "name": "Posts",
+      "description": "Create and manage ANVIKSHA stories."
+    },
+    {
+      "name": "Comments",
+      "description": "Create and manage post comments."
+    },
+    {
+      "name": "Topics",
+      "description": "Real topic discovery and post counts."
+    },
+    {
+      "name": "Library",
+      "description": "Persistent, private saved stories and collections."
+    },
+    {
+      "name": "Authors",
+      "description": "Public author profiles and safe profile updates."
+    },
+    {
+      "name": "Uploads",
+      "description": "Validated cover image uploads and serving."
+    }
+  ]
+}

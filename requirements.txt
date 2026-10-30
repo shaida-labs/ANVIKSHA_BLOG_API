@@ -1,0 +1,24 @@
+# FastAPI application
+fastapi==0.161.1
+uvicorn[standard]==0.54.0
+
+# Database
+SQLAlchemy==2.1.6
+psycopg[binary]==3.3.6
+alembic==1.20.1
+
+# Uploads and multipart form parsing
+python-multipart==0.0.32
+
+# Configuration and validation
+pydantic==2.14.1
+pydantic-settings==2.16.1
+email-validator==2.3.0
+
+# Security
+PyJWT[crypto]==2.15.1
+pwdlib[argon2]==0.3.1
+
+# Testing
+pytest==9.1.1
+httpx2==2.16.0
