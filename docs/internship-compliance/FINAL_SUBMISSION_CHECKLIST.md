@@ -28,7 +28,7 @@
 | README current | **PASS** | Counts, code splitting, Playwright, blockers updated |
 | Historical reports marked superseded | **PASS** | Banner added to four earlier audit files |
 | Independent local Git repo | **PASS** | Initialized in `blog-api`, branch `main` |
-| Staged file audit | **PASS** | 201 safe files; no secrets, `.env`, databases, uploads, build artifacts |
+| Staged file audit | **PASS** | 202 safe files; no secrets, `.env`, databases, uploads, build artifacts |
 | Secret scan of staged files | **PASS** | No match for `.env` DB password, JWT secret, or temp PG password |
 | Existing local `5432` app run | **BLOCKED** | `blog_user` auth fails; health 503; no admin reset authorization |
 | GitHub remote/push | **BLOCKED** | No remote and no push authorization |
@@ -37,7 +37,7 @@
 
 ## 2. Staged-file audit
 
-The initial staging audit contains 201 files and excludes:
+The initial staging audit contains 202 files and excludes:
 
 - `.env` and `frontend/.env.local`
 - `.venv/`
