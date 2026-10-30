@@ -1,294 +1,326 @@
-# ANVIKSHA — Knowledge Publishing Platform
+<p align="center">
+  <img src="frontend/public/brand/anviksha-symbol.png" alt="ANVIKSHA brand symbol" width="92" />
+</p>
 
-**Question Deeper. Understand Better.**
+<h1 align="center">ANVIKSHA</h1>
 
-ANVIKSHA is a database-backed editorial publishing platform for curious minds.
-It combines a FastAPI/PostgreSQL API with a React, Vite, and TypeScript frontend:
-a public journal of stories organized by topics, authenticated writing, safe
-Markdown reading, real cover-image and profile-picture uploads, likes,
-bookmarks, comments, author profiles, search, sorting, pagination, a private
-library for each reader, and a personal page for the signed-in author. The
-interface is a magazine-style issue rather than a generic dashboard: cover
-story, topic index, marginalia, contributors, and a colophon.
+<p align="center">
+  <strong>Question Deeper. Understand Better.</strong>
+</p>
 
-| | |
+<p align="center">
+  A database-backed knowledge publishing platform for curious minds.<br />
+  FastAPI + PostgreSQL API with a React editorial client.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-A47A43?style=flat-square" alt="License: MIT" /></a>
+  <a href="requirements.txt"><img src="https://img.shields.io/badge/Python-3.12%2B-171714?style=flat-square&logo=python&logoColor=white" alt="Python 3.12+" /></a>
+  <a href="docs/API_DOCUMENTATION.md"><img src="https://img.shields.io/badge/FastAPI-0.161.1-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI 0.161.1" /></a>
+  <a href="frontend/package.json"><img src="https://img.shields.io/badge/React-19.3-171714?style=flat-square&logo=react&logoColor=61DAFB" alt="React 19.3" /></a>
+  <a href="docs/DATABASE_SCHEMA.md"><img src="https://img.shields.io/badge/PostgreSQL-14%2B-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL 14+" /></a>
+</p>
+
+---
+
+## Overview
+
+**ANVIKSHA** is an editorial knowledge platform where readers can discover stories by topic, follow authors, and build a private library of ideas worth returning to. Writers get a focused Markdown editor, validated cover images, and a publishing workflow backed by a real REST API.
+
+The repository is intentionally full-stack. The **FastAPI service is the primary deliverable**; the React client is a real consumer of that API, not a mock or a local fallback. Every post, comment, like, bookmark, topic count, and author profile is read from PostgreSQL.
+
+| Item | Detail |
 |---|---|
-| **Project ID** | ANVIKSHA |
-| **Backend** | Python, FastAPI, SQLAlchemy 2.x |
-| **Database** | PostgreSQL 14+ |
-| **Authentication** | JWT Bearer tokens |
-| **Frontend** | React 19, Vite 8, TypeScript 6, Tailwind CSS 4 |
-| **API version** | 1.0.0 |
+| **Project** | ANVIKSHA - Knowledge Platform for Curious Minds |
+| **Tagline** | Question Deeper. Understand Better. |
+| **API** | FastAPI / PostgreSQL / JWT bearer authentication |
+| **Client** | React 19.3 / Vite 8 / TypeScript 6 |
+| **Data** | SQLAlchemy 2 / Alembic migrations |
+| **License** | MIT |
 
-## Documentation and verification
+---
 
-Technical and compliance documents:
+## Key Features
 
-- [Project overview](docs/PROJECT_OVERVIEW.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Database schema and migrations](docs/DATABASE_SCHEMA.md)
-- [Setup and installation](docs/SETUP_AND_INSTALLATION.md)
-- [API documentation](docs/API_DOCUMENTATION.md)
-- [Authentication and security](docs/AUTHENTICATION_AND_SECURITY.md)
-- [Testing guide](docs/TESTING_GUIDE.md)
-- [Deployment guide](docs/DEPLOYMENT_GUIDE.md)
-- [Generated OpenAPI snapshot](docs/openapi.json)
-- [Final internship compliance report](docs/internship-compliance/FINAL_INTERNSHIP_COMPLIANCE_REPORT.md)
+### Authentication and User Management
 
-Verified on 2026-10-30:
-
-```text
-Backend default suite:        175 passed, 1 skipped
-Backend with PostgreSQL:      179 passed
-PostgreSQL integration:       4 passed, 175 deselected
-Live PostgreSQL API E2E:      49/49 checks passed
-Configured PostgreSQL health: 200 (database reachable)
-Restart persistence:          PASS
-Frontend typecheck:           PASS
-Frontend unit tests:          47 passed
-Frontend lint:                25 warnings, 0 errors
-Frontend production build:    PASS (main chunk 299.47 kB, below 500 kB)
-Browser E2E (Playwright):     2 passed
-```
-
-The configured PostgreSQL service on `5432` now authenticates successfully:
-`/health` returns `200` with `"database": "reachable"`, `alembic current` reports
-`0005_user_avatar (head)`, and the live PostgreSQL API E2E passed `49/49`
-checks against that configured database. The only remaining submission gate is
-GitHub publication: no remote is configured and no push has been authorized. See
-the final compliance report.
-
-## Features
-
-- Magazine-style journal homepage built from the real API: cover story, issue
-  contents, four-column topic index, marginalia from a real comment,
-  most-engaged rail, open question, contributors, and archive counts.
-- Community page built from real API data: recent responses, contributors,
-  topic rankings, and the latest stories.
-- Cover story, story grid with folio numbers, excerpts, author/date metadata,
-  covers, and real like, comment, and bookmark state.
-- Case-insensitive search across story titles, excerpts, and body text.
-- Newest, oldest, title, and popular sorting with server-side pagination.
-- Topic and author filters backed by real post data.
-- Loading skeletons, empty states, error states, and retry controls.
 - Registration and login with Argon2id password hashing and JWT access tokens.
-- Safe, local-only post-login redirects.
-- The **My page** at `/my-posts` with the signed-in author's profile, real story
-  count, server-side author filtering, search, refresh, edit, delete, and
-  pagination.
-- Create, edit, and delete owned stories with confirmation dialogs, excerpts,
-  topics, Markdown authoring, and preview.
-- Real multipart cover-image uploads with drag/drop, file picker, preview,
-  replace/remove, progress, and validation states.
-- Profile pictures with upload, replace, and remove controls on the account page.
-  Real avatars appear in navigation, posts, comments, author profiles, and the
-  account identity; users without a picture show their initials.
-- Byte-level server validation for JPEG, PNG, and WebP uploads.
-- Safe Markdown rendering with GitHub-flavored tables/task lists, sanitized
-  HTML, heading IDs, table of contents, and highlighted code blocks.
-- Reading progress, share controls, and a focused deep-read mode.
-- Persistent likes and bookmarks with one like and one bookmark per user/post.
-- Private library at `/library` with collection labels, filters, search,
-  sorting, and server-backed pagination. Legacy `/vault` URLs redirect.
-- Public author profiles with avatars, display names, biographies, real story
-  counts, and author-filtered story lists.
-- Related stories based on the current story's topic or title.
-- Chronological comments with real authors, avatars, timestamps, counts, and
-  API-backed edit/delete controls for the comment owner.
-- Ownership enforcement on every post and comment write.
-- A premium editorial system: the ANVIKSHA lotus-book identity, ivory/ink/bronze
-  palette, Cormorant Garamond and Manrope typography, ornamental rules, folio
-  numbering, a colophon footer, and single-column authentication pages.
-- Additive Alembic migrations that preserve existing data.
-- Backend and frontend test suites, including PostgreSQL migration and
-  integration coverage.
+- Protected client routes with tab-scoped `sessionStorage` and safe local redirects.
+- Editable display name and biography; public author profiles with real counts.
+- Avatar upload, replacement, and removal with backend image validation.
+- Ownership checks on every post and comment mutation; inactive accounts are rejected.
 
-## Technology stack
+### Content Management
 
-| Component | Version / tool |
-|---|---|
-| Python | 3.12+ (verified with 3.14.7 on Windows) |
-| Web framework | FastAPI 0.161.1 |
-| ASGI server | Uvicorn 0.54.0 |
-| ORM | SQLAlchemy 2.1.6 |
-| Database driver | Psycopg 3.3.6 |
-| Migrations | Alembic 1.20.1 |
-| Validation | Pydantic 2.14.1, pydantic-settings 2.16.1 |
-| Passwords | pwdlib with Argon2 |
-| Tokens | PyJWT 2.15.1 |
-| Testing | Pytest 9.1.1, Starlette TestClient with httpx2 2.16.0 |
-| Frontend | React 19.3, TypeScript 6.0, Vite 8.3 |
-| Styling | Tailwind CSS 4.3, Lucide React icons |
-| Routing and data | React Router 7.18, Axios |
-| Frontend testing | Vitest 5.0, Testing Library |
+- Markdown authoring with title, excerpt, topic, and optional cover image.
+- Create, edit, and delete owned stories from a focused editor.
+- Server-generated upload keys for validated JPEG, PNG, and WebP covers.
+- A personal `/my-posts` page with search, refresh, edit, delete, and pagination.
+- Confirmation dialogs and toast feedback for destructive and successful actions.
 
-Exact Python versions are pinned in `requirements.txt`; frontend versions are
-pinned in `frontend/package-lock.json`.
+### Community Engagement
 
-## Architecture
+- Chronological comments with author identity and owner-only edit/delete controls.
+- Persistent likes and bookmarks with one row per user/post and idempotent endpoints.
+- A private library at `/library` with collections, search, topic filters, sorting, and pagination.
+- Real engagement counts used across cards, story pages, and author profiles.
+- Topic discovery derived from actual published posts, not hardcoded trends.
 
-```text
-HTTP request
-    |
-FastAPI route          app/api/routes/
-    |
-Pydantic schema        app/schemas/
-    |
-Service function       app/services/
-    |
-SQLAlchemy model       app/models/
-    |
-PostgreSQL             via app/db/session.py
+### Content Discovery
+
+- Public feed with server-side search across title, excerpt, and body content.
+- Topic and author filters, plus newest, oldest, title, and popular sorting.
+- Server-side pagination using a consistent `Page` response envelope.
+- Related stories based on the current story's topic or title terms.
+- Community page with recent responses, contributors, topic rankings, latest stories, and a local reading trail.
+
+### User Experience
+
+- Editorial design system: warm ivory `#F2EEE5`, ink `#171714`, and muted bronze `#A47A43`.
+- Magazine-style homepage with a cover story, issue contents, topic index, marginalia, engagement rail, and contributors.
+- Safe Markdown rendering with GFM tables/task lists, sanitized HTML, stable heading IDs, a table of contents, and highlighted code.
+- Reading progress, share controls, related stories, and a focused deep-read mode.
+- Responsive navigation, keyboard-visible focus states, a skip link, semantic landmarks, loading skeletons, empty states, and retry controls.
+
+---
+
+## Technology Stack
+
+| Layer | Technologies | Notes |
+|---|---|---|
+| Frontend | React 19.3.1 / TypeScript 6.0.3 / Vite 8.3.5 / Tailwind CSS 4.3.3 | React Router 7.18.4, Axios 1.20.0, Lucide React 1.61.0; route-level code splitting |
+| Markdown | React Markdown 10.1.0 / remark-gfm 4.0.1 / rehype-sanitize 6.0.0 / rehype-slug 6.0.0 / highlight.js 11.12.0 | GFM, sanitized HTML, stable heading IDs, highlighted code |
+| Backend | Python 3.12+ (verified 3.14.7) / FastAPI 0.161.1 / Uvicorn 0.54.0 | Pydantic 2.14.1, pydantic-settings 2.16.1, python-multipart 0.0.32, email-validator 2.3.0 |
+| Database | PostgreSQL 14+ (verified 18.6) / SQLAlchemy 2.1.6 / Psycopg 3.3.6 | `postgresql+psycopg://`; SQLite is limited to isolated tests |
+| Authentication | PyJWT 2.15.1 / pwdlib[argon2] 0.3.1 | JWT HS256 by default; HS384/HS512 supported; Argon2id hashing |
+| Migrations | Alembic 1.20.1 | Revisions `0001`-`0005`; current head `0005_user_avatar` |
+| Testing | Pytest 9.1.1 / httpx2 2.16.0 / Vitest 5.0.5 / Testing Library / Playwright 1.63.0 | Backend, frontend unit, and browser E2E; PostgreSQL integration is opt-in |
+| Tooling | Node.js 24.20.0 (requires 20.19+, 22.12+) / npm 11.19.0 / Oxlint 1.88.0 | Git; PowerShell examples with Linux/macOS equivalents |
+
+---
+
+## System Architecture
+
+```mermaid
+flowchart LR
+    subgraph Client["Browser"]
+        UI["React 19 + Vite<br/>Editorial SPA"]
+        Store["sessionStorage<br/>JWT access token"]
+    end
+
+    subgraph API["FastAPI application"]
+        Routes["API routes<br/>app/api/routes"]
+        Deps["Dependencies<br/>DB session + current user"]
+        Schemas["Pydantic schemas<br/>validation + response models"]
+        Services["Service layer<br/>business rules + ownership"]
+        Models["SQLAlchemy models<br/>app/models"]
+        Security["JWT + Argon2id<br/>app/core"]
+        Uploads["Upload service<br/>byte + dimension checks"]
+    end
+
+    DB[("PostgreSQL 14+")]
+    Disk[("Local upload directory<br/>UPLOAD_DIR")]
+    Migrations["Alembic migrations<br/>0001 to 0005"]
+
+    UI -->|"JSON / multipart"| Routes
+    Store -.->|"Bearer token"| UI
+    Routes --> Deps
+    Routes --> Schemas
+    Deps --> Services
+    Schemas --> Services
+    Services --> Models
+    Models --> DB
+    Routes --> Security
+    Services --> Uploads
+    Uploads --> Disk
+    Migrations --> DB
 ```
 
-- Routes handle HTTP concerns: dependencies, query parameters, multipart
-  parsing, and response models.
-- Services contain business rules, ownership checks, upload validation, and
-  transaction boundaries.
-- Models define tables, relationships, and database constraints.
-- Schemas define request validation and response shapes.
-- `app/dependencies.py` provides the database session and authenticated user.
-- `app/core/` contains settings, JWT/password logic, and UTC time helpers.
-- Uploaded files are stored on disk; the database stores only relative paths.
+Routes own HTTP concerns; Pydantic schemas validate input and shape responses; the service layer enforces ownership and transaction rules; SQLAlchemy models map the PostgreSQL schema. Alembic owns schema changes. Uploaded images are validated in the service layer and stored on local disk; the database stores only relative keys.
 
-## Project structure
+---
+
+## Project Structure
 
 ```text
-blog-api/
-  app/
-    main.py
-    dependencies.py
-    api/routes/
-      auth.py
-      posts.py
-      comments.py
-      uploads.py
-      bookmarks.py
-      profiles.py
-      topics.py
-    core/
-      config.py
-      security.py
-      time.py
-    db/
-      base.py
-      session.py
-    models/
-      user.py
-      post.py
-      comment.py
-      post_like.py
-      bookmark.py
-    schemas/
-      auth.py
-      comment.py
-      common.py
-      post.py
-      upload.py
-      user.py
-    services/
-      auth.py
-      comments.py
-      images.py
-      posts.py
-      profiles.py
-  alembic/versions/
-    0001_initial_schema.py
-    0002_add_post_cover_image_url.py
-    0003_add_post_cover_image_path.py
-    0004_add_engagement_profiles_and_topics.py
-    0005_add_user_avatar_path.py
-  tests/
-    conftest.py
-    helpers.py
-    image_data.py
-    test_auth.py
-    test_avatars.py
-    test_comments.py
-    test_cors.py
-    test_db_session.py
-    test_engagement.py
-    test_health_docs.py
-    test_migrations.py
-    test_posts.py
-    test_profiles.py
-    test_schemas.py
-    test_security.py
-    test_uploads.py
-    integration/test_postgres_integration.py
-  uploads/
-    .gitkeep
-  .env.example
-  .gitignore
-  alembic.ini
-  LICENSE
-  README.md
-  requirements.txt
+ANVIKSHA_BLOG_API/
+|-- app/
+|   |-- api/
+|   |   `-- routes/
+|   |       |-- auth.py
+|   |       |-- bookmarks.py
+|   |       |-- comments.py
+|   |       |-- posts.py
+|   |       |-- profiles.py
+|   |       |-- topics.py
+|   |       `-- uploads.py
+|   |-- core/
+|   |   |-- config.py
+|   |   |-- security.py
+|   |   `-- time.py
+|   |-- db/
+|   |   |-- base.py
+|   |   `-- session.py
+|   |-- models/
+|   |   |-- bookmark.py
+|   |   |-- comment.py
+|   |   |-- post.py
+|   |   |-- post_like.py
+|   |   `-- user.py
+|   |-- schemas/
+|   |   |-- auth.py
+|   |   |-- comment.py
+|   |   |-- common.py
+|   |   |-- post.py
+|   |   |-- upload.py
+|   |   `-- user.py
+|   |-- services/
+|   |   |-- auth.py
+|   |   |-- comments.py
+|   |   |-- images.py
+|   |   |-- posts.py
+|   |   `-- profiles.py
+|   |-- dependencies.py
+|   `-- main.py
+|-- alembic/
+|   |-- versions/
+|   |   |-- 0001_initial_schema.py
+|   |   |-- 0002_add_post_cover_image_url.py
+|   |   |-- 0003_add_post_cover_image_path.py
+|   |   |-- 0004_add_engagement_profiles_and_topics.py
+|   |   `-- 0005_add_user_avatar_path.py
+|   `-- env.py
+|-- docs/
+|   |-- API_DOCUMENTATION.md
+|   |-- ARCHITECTURE.md
+|   |-- AUTHENTICATION_AND_SECURITY.md
+|   |-- DATABASE_SCHEMA.md
+|   |-- DEPLOYMENT_GUIDE.md
+|   |-- PROJECT_OVERVIEW.md
+|   |-- SETUP_AND_INSTALLATION.md
+|   |-- TESTING_GUIDE.md
+|   |-- internship-compliance/        # verification and compliance reports
+|   `-- openapi.json
+|-- frontend/
+|   |-- e2e/
+|   |   `-- anviksha.spec.ts
+|   |-- public/
+|   |   `-- brand/
+|   |       |-- anviksha-app-icon.png
+|   |       |-- anviksha-logo-full.png
+|   |       |-- anviksha-logo-horizontal.png
+|   |       `-- anviksha-symbol.png
+|   |-- src/
+|   |   |-- api/
+|   |   |-- components/
+|   |   |-- contexts/
+|   |   |-- hooks/
+|   |   |-- pages/
+|   |   |-- routes/
+|   |   |-- test/
+|   |   |-- types/
+|   |   |-- utils/
+|   |   |-- App.tsx
+|   |   |-- index.css
+|   |   `-- main.tsx
+|   |-- .env.example
+|   |-- index.html
+|   |-- package.json
+|   |-- playwright.config.ts
+|   |-- vite.config.ts
+|   `-- vitest.config.ts
+|-- scripts/
+|   |-- e2e_postgres.py
+|   `-- restart_persistence.py
+|-- tests/
+|   |-- integration/
+|   |   `-- test_postgres_integration.py
+|   |-- conftest.py
+|   |-- helpers.py
+|   |-- image_data.py
+|   |-- test_auth.py
+|   |-- test_avatars.py
+|   |-- test_comments.py
+|   |-- test_cors.py
+|   |-- test_db_session.py
+|   |-- test_engagement.py
+|   |-- test_error_handling.py
+|   |-- test_health_docs.py
+|   |-- test_migrations.py
+|   |-- test_posts.py
+|   |-- test_profiles.py
+|   |-- test_schemas.py
+|   |-- test_security.py
+|   `-- test_uploads.py
+|-- uploads/
+|   `-- .gitkeep
+|-- .env.example
+|-- .gitignore
+|-- alembic.ini
+|-- LICENSE
+|-- README.md
+|-- pytest.ini
+`-- requirements.txt
 ```
 
-## Frontend structure
+Generated caches, virtual environments, `node_modules`, build output, local `.env` files, and uploaded user files are omitted.
 
-```text
-frontend/
-  public/brand/                  # ANVIKSHA logo and app-icon assets
-  src/
-    api/                         # Axios calls for auth, posts, comments, uploads,
-                                 # bookmarks, profiles, and topics
-    components/
-      authors/                   # Author links and profile presentation
-      auth/                      # Auth shell and password field
-      comments/                  # Paginated comments and owner controls
-      home/                      # Cover story, issue contents, topic index,
-                                 # marginalia, and journal issue sections
-      layout/                    # Site layout and colophon footer
-      navigation/                # Brand, masthead, and responsive navigation
-      posts/                     # Cards, covers, Markdown, TOC, engagement
-      profile/                   # Avatar upload and profile presentation
-      ui/                        # Buttons, fields, dialogs, alerts, empty states
-    contexts/                    # Authentication and toast state
-    hooks/                       # Auth, author posts, reading progress, titles
-    pages/                       # Stories, community, detail, editor, library,
-                                 # My page, authors, auth
-    routes/                      # Route tree and protected-route handling
-    test/                        # Vitest setup
-    types/                       # API contracts
-    utils/                       # Markdown, highlighting, validation, formatting
-    App.tsx
-    index.css
-    main.tsx
-  index.html
-  package.json
-  vite.config.ts
-  vitest.config.ts
-  README.md
-  .env.example
-```
+---
 
 ## Prerequisites
 
-- Windows PowerShell (the examples below use PowerShell).
-- Python 3.12 or newer.
-- Node.js 20.19+, 22.12+, or newer.
-- PostgreSQL 14 or newer, running locally or reachable on the network.
-- PostgreSQL command-line tools (`psql`, `createdb`, or `pgAdmin`) for the
-  initial database and role setup.
+| Requirement | Minimum | Verified locally |
+|---|---|---|
+| Python | 3.12+ | 3.14.7 |
+| Node.js | 20.19+, 22.12+, or newer | 24.20.0 |
+| npm | Bundled with Node.js | 11.19.0 |
+| PostgreSQL | 14+ | 18.6 |
+| Git | Current release | Verified in this environment |
+
+- **PostgreSQL client tools** (`psql`) are needed for the one-time role and database setup. If `psql` is not on `PATH`, call the full path to your installation's `psql` executable.
+- **Playwright Chromium** is needed only for browser end-to-end tests.
+- **Docker is not required.** The repository does not include a Docker or Compose configuration.
+- The setup examples use **Windows PowerShell**; Linux/macOS equivalents are provided.
+
+Check the core versions from any directory:
 
 ```powershell
 python --version
 node --version
 npm --version
-Get-Service -Name postgresql*
+psql --version
+git --version
 ```
 
-If `psql` is not on `PATH`, use its full installation path, for example:
+The same commands work in a Linux/macOS shell. If `python` is not available, use `python3`.
+
+---
+
+## Installation and Setup
+
+Run commands from the repository root unless a step says otherwise.
+
+### 1. Clone or enter the repository
+
+**Windows PowerShell**
 
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" --version
+git clone https://github.com/shaida-labs/ANVIKSHA_BLOG_API.git
+Set-Location ANVIKSHA_BLOG_API
 ```
 
-## Backend setup
+**Linux/macOS**
 
-Run these commands from the project root.
+```bash
+git clone https://github.com/shaida-labs/ANVIKSHA_BLOG_API.git
+cd ANVIKSHA_BLOG_API
+```
+
+If the repository is already open locally, start from its root instead.
+
+### 2. Create the backend environment
+
+**Windows PowerShell**
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -299,21 +331,137 @@ python -m pip install -r requirements.txt
 python -m pip check
 ```
 
-`requirements.txt` pins `python-multipart==0.0.32`, required by the cover-image
-and avatar multipart endpoints.
+**Linux/macOS**
 
-## PostgreSQL database and role setup
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip check
+```
 
-The application does not create databases automatically, and it never drops or
-resets an existing database. Run these administrative steps once.
+`requirements.txt` pins `python-multipart`, which FastAPI needs for multipart upload endpoints.
 
-Open `psql` as a PostgreSQL administrator:
+### 3. Install frontend dependencies
+
+From the `frontend/` directory:
+
+**Windows PowerShell**
+
+```powershell
+Set-Location frontend
+npm ci
+Set-Location ..
+```
+
+**Linux/macOS**
+
+```bash
+cd frontend
+npm ci
+cd ..
+```
+
+### 4. Create environment files
+
+**Windows PowerShell**
+
+```powershell
+Copy-Item .env.example .env
+Set-Location frontend
+Copy-Item .env.example .env.local
+Set-Location ..
+```
+
+**Linux/macOS**
+
+```bash
+cp .env.example .env
+cd frontend
+cp .env.example .env.local
+cd ..
+```
+
+Then fill in the placeholders as described in [Environment Configuration](#environment-configuration). Do not commit either file.
+
+### 5. Prepare the database and start the services
+
+Continue with [Database Setup and Migrations](#database-setup-and-migrations), then [Running the Backend](#running-the-backend) and [Running the Frontend](#running-the-frontend).
+
+---
+
+## Environment Configuration
+
+The backend reads `.env` from the repository root. The frontend reads `.env.local` from `frontend/`. Both files are gitignored.
+
+### Backend variables
+
+| Variable | Example / default | Notes |
+|---|---|---|
+| `APP_NAME` | `ANVIKSHA API` | FastAPI title and log label. |
+| `ENVIRONMENT` | `development` | `development`, `test`, or `production`. |
+| `DEBUG` | `false` | Controls log level; stack traces are not returned to clients. |
+| `CORS_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173` | Comma-separated browser origins. Add your frontend origin. |
+| `DATABASE_URL` | `postgresql+psycopg://blog_user:YOUR_PASSWORD@localhost:5432/blog_api_db` | Psycopg 3 URL. Plain `postgresql://` and `postgres://` are normalized. URL-encode reserved password characters. |
+| `DATABASE_ECHO` | `false` | Enables SQLAlchemy SQL logging. |
+| `JWT_SECRET_KEY` | `PASTE_GENERATED_SECRET_HERE` | At least 32 characters. Generate a random value; never commit it. |
+| `JWT_ALGORITHM` | `HS256` | `HS256`, `HS384`, or `HS512`. |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | 1-1440 minutes. |
+| `UPLOAD_DIR` | `uploads` | Relative to the project root unless absolute. |
+| `UPLOAD_MAX_SIZE_MB` | `5` | 1-50 MB; the backend remains authoritative. |
+| `UPLOAD_MAX_IMAGE_PIXELS` | `40000000` | Maximum decoded pixel count. |
+
+Generate a JWT secret with:
+
+```powershell
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+
+The same command works in a Linux/macOS shell. Paste the output into `JWT_SECRET_KEY`.
+
+### Frontend variables
+
+| Variable | Example | Notes |
+|---|---|---|
+| `VITE_API_BASE_URL` | `http://127.0.0.1:8000` | Base URL of the FastAPI service. |
+| `VITE_MAX_UPLOAD_MB` | `5` | Client-side cover/avatar limit. Keep aligned with `UPLOAD_MAX_SIZE_MB`; the backend validates the bytes. |
+
+Only `VITE_*` values are exposed to the browser. Do not put secrets in `frontend/.env.local`.
+
+The default CORS template allows the Vite dev server (`5173`) and preview server (`4173`). If you use another origin, add it to `CORS_ORIGINS` and restart the API.
+
+Production validation rejects SQLite, non-PostgreSQL URLs, and placeholder JWT secrets. SQLite is accepted only when `ENVIRONMENT=test`.
+
+---
+
+## Database Setup and Migrations
+
+Run these steps from the repository root with the backend virtual environment active. The application does not create or drop databases automatically.
+
+### 1. Create the role and databases
+
+Open `psql` as a PostgreSQL administrator.
+
+**Windows PowerShell**
+
+```powershell
+psql -U postgres -h localhost
+```
+
+If `psql` is not on `PATH`, use the full path to your installation. For a PostgreSQL 18 installation on Windows:
 
 ```powershell
 & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost
 ```
 
-Replace the password before running the SQL:
+**Linux/macOS**
+
+```bash
+psql -U postgres -h localhost
+```
+
+Then run, replacing the password with a strong local value:
 
 ```sql
 CREATE ROLE blog_user WITH LOGIN PASSWORD 'replace_with_a_strong_database_password';
@@ -321,172 +469,142 @@ CREATE DATABASE blog_api_db OWNER blog_user;
 CREATE DATABASE blog_api_test OWNER blog_user;
 ```
 
-If the role already exists, update its password instead of creating it again:
+If the role already exists, update its password instead:
 
 ```sql
 ALTER ROLE blog_user WITH LOGIN PASSWORD 'replace_with_a_strong_database_password';
 ```
 
-Verify the application database connection:
+`blog_api_test` is reserved for the opt-in PostgreSQL integration suite. The test fixture refuses to run unless the database name contains `test`, and it recreates only its dedicated test tables. Never point `TEST_DATABASE_URL` at the application database.
+
+Verify the application connection:
+
+**Windows PowerShell**
 
 ```powershell
 & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U blog_user -h localhost -d blog_api_db -c "SELECT current_database();"
 ```
 
-`blog_api_test` is reserved for the opt-in PostgreSQL integration suite. Do not
-point `TEST_DATABASE_URL` at a production or shared development database: the
-integration fixture recreates its application tables and applies migrations.
+**Linux/macOS**
 
-## Environment configuration
-
-Create the local environment file:
-
-```powershell
-Copy-Item .env.example .env
+```bash
+psql -U blog_user -h localhost -d blog_api_db -c "SELECT current_database();"
 ```
 
-Generate a random JWT secret:
+Adjust the PostgreSQL version in the Windows path if your installation differs.
 
-```powershell
-python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
+### 2. Apply migrations
 
-Edit `.env` and set:
-
-```dotenv
-APP_NAME=ANVIKSHA API
-ENVIRONMENT=development
-DEBUG=false
-CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173
-DATABASE_URL=postgresql+psycopg://blog_user:YOUR_DATABASE_PASSWORD@localhost:5432/blog_api_db
-DATABASE_ECHO=false
-JWT_SECRET_KEY=PASTE_THE_GENERATED_SECRET_HERE
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-UPLOAD_DIR=uploads
-UPLOAD_MAX_SIZE_MB=5
-UPLOAD_MAX_IMAGE_PIXELS=40000000
-```
-
-Important details:
-
-- `.env` is gitignored. Never commit real credentials.
-- `DATABASE_URL` uses the explicit Psycopg 3 dialect,
-  `postgresql+psycopg://`. Plain `postgresql://` and `postgres://` URLs are
-  normalized to this dialect.
-- URL-encode special characters in the database password (for example `@` as
-  `%40`) or choose a password without reserved URL characters.
-- `JWT_SECRET_KEY` must be at least 32 characters.
-- `CORS_ORIGINS` is a comma-separated list of browser origins. The FastAPI
-  backend only sends CORS headers for those origins.
-- `UPLOAD_DIR` is relative to the project root unless an absolute path is used.
-- `UPLOAD_MAX_SIZE_MB` defaults to 5 and is capped at 50.
-- `UPLOAD_MAX_IMAGE_PIXELS` defaults to 40,000,000 and prevents decompression
-  bombs from being stored.
-- SQLite is only accepted when `ENVIRONMENT=test`; the application has no
-  hidden SQLite fallback for development or production.
-- When `ENVIRONMENT=production`, placeholder JWT secrets are rejected at
-  startup and a PostgreSQL URL is required.
-- `DEBUG` controls application log level only. Stack traces are never returned
-  to API clients.
-
-## Database migrations
-
-Apply all migrations, including the cover-image, engagement, and avatar
-revisions:
+From the repository root:
 
 ```powershell
 python -m alembic upgrade head
-```
-
-The migrations are additive and non-destructive:
-
-- `0002_add_post_cover_image_url.py` adds the nullable
-  `posts.cover_image_url` column for legacy URL-based covers.
-- `0003_add_post_cover_image_path.py` adds the nullable
-  `posts.cover_image_path` column. It copies any local legacy `/uploads/...`
-  URL into the new column so existing local images remain visible.
-- `0004_add_engagement_profiles_and_topics.py` adds nullable
-  `users.display_name`, `users.bio`, `posts.excerpt`, and `posts.topic` columns,
-  plus the `post_likes` and `bookmarks` tables. Both engagement tables enforce
-  one row per user/post and use cascading foreign keys so deleting a user or
-  post cannot leave orphaned likes or bookmarks.
-- `0005_add_user_avatar_path.py` adds nullable `users.avatar_path` for
-  server-stored profile pictures. Existing users remain valid and fall back to
-  their initials until they upload a picture.
-
-No migration deletes or recreates existing rows. Existing posts without a
-cover, excerpt, or topic remain valid, existing authors can add profile
-details later, and existing users can keep working without an avatar. The
-`0004` and `0005` revisions backfill nothing and preserve all existing users,
-posts, and comments.
-
-Check the current revision:
-
-```powershell
 python -m alembic current
-```
-
-Verify that ORM metadata and migrations agree (requires a reachable database):
-
-```powershell
 python -m alembic check
 ```
 
-Create a new migration after changing models:
+The same commands work on Linux/macOS. Expected current revision:
+
+```text
+0005_user_avatar (head)
+```
+
+`alembic check` should report:
+
+```text
+No new upgrade operations detected.
+```
+
+### Migration history
+
+| Revision | Change |
+|---|---|
+| `0001_initial_schema` | Creates `users`, `posts`, and `comments` with core constraints and indexes. |
+| `0002_add_post_cover_image_url` | Adds the legacy nullable `posts.cover_image_url` column. |
+| `0003_add_post_cover_image_path` | Adds `posts.cover_image_path`; copies local legacy `/uploads/...` URLs into it. |
+| `0004_add_engagement_profiles_and_topics` | Adds display name/bio, post excerpt/topic, `post_likes`, and `bookmarks`. |
+| `0005_add_user_avatar_path` | Adds nullable `users.avatar_path` for profile pictures. |
+
+### Core tables
+
+| Table | Purpose |
+|---|---|
+| `users` | Accounts, public profiles, avatar keys, and active state. |
+| `posts` | Markdown stories, topics, cover references, and authors. |
+| `comments` | Chronological comments linked to posts and authors. |
+| `post_likes` | One like per user/post; cascades with post or user deletion. |
+| `bookmarks` | Private saved posts and optional collection labels. |
+
+Migrations are additive. Do not reset or drop an existing database to apply changes. For a model change, create a new migration:
 
 ```powershell
 python -m alembic revision --autogenerate -m "describe the change"
 python -m alembic upgrade head
 ```
 
-Use `python -m alembic downgrade -1` only when intentionally rolling back a
-migration. Do not use `Base.metadata.create_all()` as a production substitute
-for migrations, and do not reset or drop an existing database to apply changes.
+Deleting a post cascades its comments, likes, and bookmarks. Deleting a user with posts or comments is restricted by the database; no user-deletion endpoint is exposed. No seed data is included; create an account through `/register` or the UI.
 
-## Running the backend
+---
 
-With the virtual environment active and `.env` configured:
+## Running the Backend
+
+From the repository root, with the virtual environment active:
 
 ```powershell
-python -m uvicorn app.main:app --reload
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-The API is available at:
+The same command works on Linux/macOS. Use `--reload` for local development only.
 
-- API root: <http://127.0.0.1:8000/>
-- Swagger UI: <http://127.0.0.1:8000/docs>
-- ReDoc: <http://127.0.0.1:8000/redoc>
-- OpenAPI JSON: <http://127.0.0.1:8000/openapi.json>
-- Health check: <http://127.0.0.1:8000/health>
+| Service | URL |
+|---|---|
+| API root | <http://127.0.0.1:8000/> |
+| Health check | <http://127.0.0.1:8000/health> |
+| Swagger UI | <http://127.0.0.1:8000/docs> |
+| ReDoc | <http://127.0.0.1:8000/redoc> |
+| OpenAPI JSON | <http://127.0.0.1:8000/openapi.json> |
 
-`/health` performs a real `SELECT 1` database check. It returns `200` when the
-API and database are reachable, and `503` when the database is unavailable.
+Verify the database-aware health endpoint:
 
-## Frontend setup
-
-From the `frontend/` directory:
+**Windows PowerShell**
 
 ```powershell
-npm ci
-Copy-Item .env.example .env.local
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
+
+**Linux/macOS**
+
+```bash
+curl -fsS http://127.0.0.1:8000/health
+```
+
+Expected response:
+
+```json
+{
+  "status": "healthy",
+  "database": "reachable",
+  "service": "anviksha-api",
+  "project_id": "ANVIKSHA"
+}
+```
+
+`/health` runs a real `SELECT 1`; it returns `503` when PostgreSQL is unavailable.
+
+---
+
+## Running the Frontend
+
+From the `frontend/` directory, with `frontend/.env.local` configured:
+
+```powershell
+Set-Location frontend
 npm run dev
 ```
 
-The dev server runs at <http://127.0.0.1:5173/>. The frontend reads:
+The same command works on Linux/macOS after `cd frontend`.
 
-```dotenv
-VITE_API_BASE_URL=http://127.0.0.1:8000
-VITE_MAX_UPLOAD_MB=5
-```
-
-- `VITE_API_BASE_URL` must point at the running API.
-- `VITE_MAX_UPLOAD_MB` is the client-side upload limit. Keep it in sync with the
-  backend `UPLOAD_MAX_SIZE_MB`; the backend remains authoritative.
-- `.env.local` is gitignored.
-- The JWT is stored in `sessionStorage` under `anviksha.access_token`. Closing
-  the tab ends the session. The backend uses bearer tokens rather than an
-  HttpOnly cookie flow.
+The Vite development server runs at <http://127.0.0.1:5173/>. The backend must be running and `VITE_API_BASE_URL` must point to it.
 
 For a production build:
 
@@ -495,534 +613,167 @@ npm run build
 npm run preview
 ```
 
-The build is emitted to `frontend/dist` and preview runs at
-<http://127.0.0.1:4173/>. The backend CORS template allows that origin.
+The build is written to `frontend/dist/`; preview serves it at <http://127.0.0.1:4173/>. The backend CORS template allows both `5173` and `4173`; add other origins to `CORS_ORIGINS`.
 
-## Frontend routes
+---
 
-| Route | Access | Description |
-|---|---|---|
-| `/` | Public | Stories homepage: cover story, issue contents, topic index, marginalia, most-engaged rail, open question, contributors, feed, search, sort, and pagination. |
-| `/community` | Public | Community page with recent responses, contributors, topic rankings, latest stories, and the local reading trail. |
-| `/posts/:id` | Public | Full story with safe Markdown, TOC, reading progress, engagement, related stories, comments, deep-read mode, and owner controls. |
-| `/authors/:username` | Public | Public author profile with avatar, biography, real counts, and author-filtered stories. |
-| `/library` | Protected | The reader's private library with collections, filters, search, sort, and pagination. |
-| `/vault` | Redirect | Legacy redirect to `/library`. |
-| `/login` | Public | Sign in with a safe local redirect. No site footer. |
-| `/register` | Public | Create an account. No site footer. |
-| `/my-posts` | Protected | **My page**: the signed-in author's profile, story count, search, refresh, edit, delete, pagination, and public-page link. |
-| `/write` | Protected | Create a Markdown story with excerpt, topic, and cover image. |
-| `/write/:id/edit` | Protected | Edit an owned story. |
-| `/account` | Protected | Account details plus public display name, biography, and profile picture editing. |
-| `/dashboard` | Redirect | Legacy redirect to `/my-posts`. |
-| `/dashboard/posts` | Redirect | Legacy redirect to `/my-posts`. |
-| `/dashboard/posts/new` | Redirect | Legacy redirect to `/write`. |
-| `/dashboard/posts/:id/edit` | Redirect | Legacy redirect to `/write/:id/edit`. |
-| `/dashboard/account` | Redirect | Legacy redirect to `/account`. |
+## API Documentation
 
-Protected routes wait for authentication to resolve, then redirect an anonymous
-user to `/login?next=<requested-path>`. Only local paths are accepted as
-redirect targets.
+FastAPI generates interactive documentation from the live application.
 
-## API endpoints
-
-| Method | Path | Authentication | Description | Success |
-|---|---|---|---|---|
-| GET | `/` | Public | API metadata | 200 |
-| GET | `/health` | Public | API and database health | 200 / 503 |
-| POST | `/register` | Public | Register a user | 201 |
-| POST | `/login` | Public | Obtain a JWT access token | 200 |
-| GET | `/users/me` | Bearer | Current user profile | 200 |
-| PATCH | `/users/me` | Bearer | Update the current user's display name and biography | 200 |
-| POST | `/users/me/avatar` | Bearer | Upload or replace the current user's profile picture | 200 |
-| DELETE | `/users/me/avatar` | Bearer | Remove the current user's profile picture | 200 |
-| GET | `/users/{username}` | Public | Public author profile, avatar, and real counts | 200 |
-| GET | `/topics` | Public | Distinct real topics with post counts | 200 |
-| GET | `/posts` | Public | Story feed with pagination, search, topic/author filters, and sorting | 200 |
-| GET | `/posts/mine` | Bearer | The current author's posts with pagination and search | 200 |
-| POST | `/posts` | Bearer | Create a post | 201 |
-| GET | `/posts/{post_id}` | Public | Retrieve a post, including optional viewer engagement state | 200 |
-| PUT | `/posts/{post_id}` | Bearer + owner | Replace a post | 200 |
-| DELETE | `/posts/{post_id}` | Bearer + owner | Delete a post, its comments, likes, and bookmarks | 204 |
-| POST | `/posts/{post_id}/like` | Bearer | Like a post; idempotent | 200 |
-| DELETE | `/posts/{post_id}/like` | Bearer | Remove the current user's like; idempotent | 200 |
-| POST | `/posts/{post_id}/bookmark` | Bearer | Save a post to the library, optionally with a collection | 200 |
-| DELETE | `/posts/{post_id}/bookmark` | Bearer | Remove a post from the library; idempotent | 200 |
-| PATCH | `/posts/{post_id}/bookmark` | Bearer | Change only the bookmark's collection label | 200 |
-| GET | `/bookmarks` | Bearer | The current user's private library with filters and pagination | 200 |
-| GET | `/bookmarks/collections` | Bearer | Real collection labels and counts for the current user | 200 |
-| POST | `/uploads/images` | Bearer | Upload a validated cover image | 201 |
-| GET | `/uploads/{file_path:path}` | Public | Serve a stored image safely | 200 / 404 |
-| GET | `/comments?post_id={post_id}` | Public | List a post's comments chronologically | 200 |
-| POST | `/comments` | Bearer | Create a comment | 201 |
-| GET | `/comments/{comment_id}` | Public | Retrieve a comment | 200 |
-| PUT | `/comments/{comment_id}` | Bearer + owner | Update a comment | 200 |
-| DELETE | `/comments/{comment_id}` | Bearer + owner | Delete a comment | 204 |
-
-### Posts
-
-`GET /posts` and `GET /posts/mine` accept:
-
-- `limit`: 1–100, default `20`.
-- `offset`: 0 or greater, default `0`.
-- `search`: optional case-insensitive search across title, excerpt, and body
-  text, maximum 200 characters.
-- `topic`: optional exact topic label filter. The API keeps the `topic` field
-  name for compatibility with existing clients and data.
-- `author`: optional author username filter for the public feed.
-- `sort`: `newest` (default), `oldest`, `title`, or `popular`. Popular sorting
-  uses real like and comment totals; it never uses fabricated engagement.
-
-`GET /posts/mine` always filters by the authenticated author. It is not a
-client-supplied author filter. Public post endpoints resolve an optional Bearer
-token so `liked_by_me` and `bookmarked_by_me` reflect the current viewer while
-remaining readable without authentication.
-
-`PUT /posts/{post_id}` is a full replacement: `title` and `content` are
-required; `excerpt` and `topic` are optional. `created_at` is unchanged and
-`updated_at` is refreshed. For uploaded covers, the frontend submits the current
-`cover_image_path`, so editing preserves the cover unless the author replaces or
-removes it. Legacy URL-only covers are shown read-only in the editor; saving
-without a replacement removes the legacy URL, and the editor warns before that
-happens.
-
-Every post response includes:
-
-- `cover_image_path`: relative upload key, or `null`.
-- `cover_image_url`: legacy read-only URL for older data, or `null`.
-- `excerpt`: optional short summary, or `null`.
-- `topic`: optional topic label, or `null`.
-- `comment_count`: a real count from the comments table.
-- `like_count`: a real count from the `post_likes` table.
-- `liked_by_me`: whether the optional authenticated viewer liked the post.
-- `bookmarked_by_me`: whether the optional authenticated viewer saved the post.
-
-New writes accept only `cover_image_path`. Remote `http://` or `https://` cover
-URLs are rejected with `422`.
-
-## Cover image uploads
-
-Cover uploads are real multipart requests. The editor never accepts a remote
-image URL.
-
-### Backend contract
-
-`POST /uploads/images` requires a Bearer token and a multipart field named
-`file`.
-
-Accepted formats:
-
-- JPEG (`image/jpeg`)
-- PNG (`image/png`)
-- WebP (`image/webp`)
-
-The backend inspects the actual file bytes, not only the client-provided
-`Content-Type` or filename. It also validates dimensions and size before
-storing anything.
-
-| Condition | Response |
+| Resource | Local URL |
 |---|---|
-| Successful upload | `201` with `path`, `url`, `content_type`, `size`, `width`, `height` |
-| Missing or invalid token | `401` |
-| Empty file | `422` |
-| Unsupported or malformed image bytes | `415` |
-| Image larger than `UPLOAD_MAX_SIZE_MB` | `413` |
-| Dimensions above `UPLOAD_MAX_IMAGE_PIXELS` | `422` |
-| Storage failure | `500` |
+| Swagger UI | <http://127.0.0.1:8000/docs> |
+| ReDoc | <http://127.0.0.1:8000/redoc> |
+| OpenAPI JSON | <http://127.0.0.1:8000/openapi.json> |
+| Committed snapshot | [`docs/openapi.json`](docs/openapi.json) |
 
-Stored files use server-generated names:
+The committed snapshot contains **18 paths and 29 operations** across General, Authentication, Posts, Comments, Topics, Library, Authors, and Uploads. The API version is `1.0.0`.
 
-```text
-UPLOAD_DIR/covers/YYYY/MM/<uuid>.<jpg|png|webp>
+- Base URL: `http://127.0.0.1:8000`
+- Authentication: `Authorization: Bearer <access_token>`; obtain a token from `POST /login`.
+- JSON bodies use `application/json`; uploads use `multipart/form-data`.
+- List endpoints return a pagination envelope:
+
+```json
+{
+  "items": [],
+  "total": 0,
+  "limit": 20,
+  "offset": 0
+}
 ```
 
-The database stores the relative key, for example
-`covers/2026/10/8f3c...png`, not the binary file or a browser object URL. The
-public URL is `/uploads/covers/2026/10/8f3c...png`.
+- Errors use `{"detail": "..."}`. Validation errors use a list of location/message/type objects and do not echo submitted values.
 
-The serving endpoint:
+To authorize in Swagger UI:
 
-- Normalizes separators and resolves paths inside `UPLOAD_DIR` only.
-- Rejects traversal segments, drive letters, and disallowed extensions.
-- Returns `404` for missing or unsafe paths.
-- Serves the detected media type with `Content-Disposition: inline` and a long
-  immutable cache lifetime.
+1. Call `POST /login` with a registered account.
+2. Copy `access_token` from the response.
+3. Click **Authorize**, paste the token into the Bearer field, and authorize.
+4. Call protected endpoints.
 
-When a post's cover is replaced or the post is deleted, the previous stored file
-is removed on a best-effort basis. Files are not served from a directory that
-allows execution or directory listing.
+`GET /uploads/{file_path:path}` serves stored images and is intentionally hidden from the OpenAPI schema. It remains part of the public image-serving contract.
 
-`uploads/` is gitignored except for `uploads/.gitkeep`. The directory is created
-automatically when the first image is stored.
+---
 
-### Frontend behavior
+## API Modules and Capabilities
 
-The editor's cover field supports:
+| Module | Representative endpoints | Auth | Capabilities |
+|---|---|---|---|
+| General | `GET /`, `GET /health` | Public | Service metadata and a database-aware health check. |
+| Authentication | `POST /register`, `POST /login`, `GET /users/me` | Public / Bearer | Account creation, JWT login, current-user lookup. |
+| Authors | `PATCH /users/me`, `POST/DELETE /users/me/avatar`, `GET /users/{username}` | Bearer / Public | Profile editing, avatar lifecycle, public author profiles. |
+| Posts | `GET/POST /posts`, `GET /posts/mine`, `GET/PUT/DELETE /posts/{post_id}` | Public / Bearer / Owner | Post CRUD and discovery with pagination, search, filters, and sorting. |
+| Engagement | `POST/DELETE /posts/{post_id}/like`, `POST/DELETE/PATCH /posts/{post_id}/bookmark` | Bearer | Idempotent likes and bookmarks with real counts. |
+| Comments | `GET/POST /comments`, `GET/PUT/DELETE /comments/{comment_id}` | Public / Bearer / Owner | Chronological comments with owner-only mutation. |
+| Library | `GET /bookmarks`, `GET /bookmarks/collections` | Bearer | Private saved stories, collection labels, and counts. |
+| Topics | `GET /topics` | Public | Real topic labels and post counts. |
+| Uploads | `POST /uploads/images`, `GET /uploads/{file_path:path}` | Bearer / Public | Validated image upload and safe local serving. |
 
-- Drag and drop.
-- File picker.
-- Live 16:9 preview.
-- Replace and remove controls.
-- Upload progress.
-- Client-side type and size validation before the request.
-- Disabled and error states.
-- A legacy-cover notice when editing an older URL-based post.
+The OpenAPI snapshot counts 29 documented operations; the upload-serving `GET` is intentionally hidden from the schema and is included above for completeness.
 
-Saving is blocked while an upload is in progress. The editor sends only the
-relative `cover_image_path` returned by the API.
+### Post discovery
 
-### Profile picture uploads
+`GET /posts` accepts:
 
-Profile pictures are uploaded from the account page as a multipart `file` field
-to `POST /users/me/avatar`. The same JPEG, PNG, and WebP byte-level validation,
-size limit, and dimension limit apply. The API stores the image at:
+| Parameter | Values | Notes |
+|---|---|---|
+| `limit` | 1-100, default 20 | Page size. |
+| `offset` | >= 0, default 0 | Rows to skip. |
+| `search` | Up to 200 characters | Case-insensitive title, excerpt, and content search. |
+| `topic` | Up to 60 characters | Exact topic filter; `General` maps to untagged posts. |
+| `author` | Up to 50 characters | Author username filter on the public feed. |
+| `sort` | `newest`, `oldest`, `title`, `popular` | Popular uses real like and comment totals. |
 
-```text
-UPLOAD_DIR/avatars/YYYY/MM/<uuid>.<jpg|png|webp>
-```
+`GET /posts/mine` applies the same pagination, search, topic, and sort controls but always scopes results to the authenticated author. `GET /bookmarks` adds `collection` and supports `saved_newest`, `saved_oldest`, and `title` sorting.
 
-`users.avatar_path` stores only the relative key, for example
-`avatars/2026/10/8f3c...png`. The public URL is
-`/uploads/avatars/2026/10/8f3c...png`. Replacing or removing an avatar deletes
-the previous stored file on a best-effort basis. The account page exposes add,
-change, and remove controls, and the resulting avatar is reflected immediately
-in the navigation identity and across the publishing surfaces.
+Status codes include `201` for new accounts, posts, comments, and uploaded images; `204` for post/comment deletion; `200` for likes, bookmarks, and avatar changes; `401`/`403` for authentication and ownership failures; `404` for missing resources; `409` for conflicts; `413`/`415` for upload size or type; and `422` for validation errors.
 
-### Example upload
+Post and comment authors are derived from the JWT, never from client-supplied `author_id` fields. Request schemas forbid unknown fields.
 
-```powershell
-$upload = curl.exe -s -X POST "http://127.0.0.1:8000/uploads/images" `
-    -H "Authorization: Bearer $token" `
-    -F "file=@C:\path\to\cover.png" | ConvertFrom-Json
-
-$postBody = @{
-    title           = "My first ANVIKSHA story"
-    content         = "This is the content of my first story."
-    cover_image_path = $upload.path
-} | ConvertTo-Json
-
-$post = Invoke-RestMethod `
-    -Method Post `
-    -Uri "http://127.0.0.1:8000/posts" `
-    -Headers $headers `
-    -ContentType "application/json" `
-    -Body $postBody
-```
-
-### Legacy cover URLs
-
-Existing posts may still have `cover_image_url` from the earlier URL-based
-editor. The API continues to return that field for compatibility. Migration
-`0003_post_cover_image_path` copies local `/uploads/...` legacy URLs into
-`cover_image_path`. Remote legacy URLs remain readable but cannot be submitted
-for new posts or updates. When an author edits a legacy-only post, the editor
-shows the old cover with a warning and removes the legacy URL on save unless the
-author uploads a replacement.
-
-## Comments
-
-`GET /comments` requires the `post_id` query parameter. Comments are returned in
-chronological order. The same `limit` and `offset` rules apply.
-
-`PUT /comments/{comment_id}` requires the new `content`; `post_id` and
-`author_id` cannot be changed. Only the comment author sees edit and delete
-controls in the UI, and the API enforces the same ownership rule.
-
-## Topics, engagement, and the library
-
-Topics are plain optional labels on posts. The public interface calls them
-topics; the API keeps the `topic` field name for compatibility. `GET /topics`
-returns the distinct labels currently used by at least one post, with real
-counts. The homepage and library use those server counts for topic filters; no
-topic list is hardcoded.
-
-Likes and bookmarks are persisted in their own tables:
-
-- `POST /posts/{post_id}/like` creates at most one like per user/post.
-- `DELETE /posts/{post_id}/like` removes only the current user's like.
-- `POST /posts/{post_id}/bookmark` saves a post with an optional collection
-  label of up to 80 characters.
-- `PATCH /posts/{post_id}/bookmark` changes only the collection label.
-- `DELETE /posts/{post_id}/bookmark` removes the saved post.
-
-All engagement endpoints are idempotent and require authentication. The API
-returns the resulting boolean state and real count, so the frontend never
-invents engagement values. `GET /bookmarks` is private to the authenticated
-user and supports search, topic, collection, sort, limit, and offset.
-`GET /bookmarks/collections` returns only the labels currently attached to that
-user's bookmarks, with counts. The library is never exposed on a public
-endpoint.
-
-## Author profiles and avatars
-
-`GET /users/{username}` returns a public profile: username, display name,
-biography, avatar path, member-since date, and real published-story counts for
-posts, comments, and likes received. `PATCH /users/me` lets the authenticated
-user update only their display name and biography. Usernames and email
-addresses are not changed by that endpoint.
-
-Profile pictures use the same byte-level image validation as cover uploads:
-
-- `POST /users/me/avatar` accepts a multipart `file` field with a JPEG, PNG, or
-  WebP image, stores it under `UPLOAD_DIR/avatars/YYYY/MM/`, and replaces any
-  previous picture.
-- `DELETE /users/me/avatar` clears `users.avatar_path` and removes the unused
-  file on a best-effort basis.
-- The account page supports add, change, and remove actions. The frontend shows
-  real avatars in the header identity, post cards, comments, author profiles,
-  and the account page. Users without a picture fall back to their initials.
-
-## Markdown, table of contents, and deep-read mode
-
-Story bodies are rendered as GitHub-flavored Markdown through `react-markdown`.
-`remark-gfm` enables tables, task lists, and strikethrough; `rehype-sanitize`
-removes unsafe HTML, event handlers, and dangerous URLs; `rehype-slug` creates
-stable heading IDs. The table of contents is extracted from the same Markdown
-source and linked to those IDs, including duplicate-heading suffixes. Code
-blocks are highlighted with `highlight.js` and include a copy control.
-
-The detail page shows reading progress, a share control, related stories, and a
-focus mode that hides site chrome while leaving an exit control available. The
-frontend never uses `dangerouslySetInnerHTML` for story content.
-
-## Authorization policy
-
-- Missing, malformed, expired, or invalid tokens return `401 Unauthorized` with
-  `WWW-Authenticate: Bearer`.
-- Existing resources owned by another user return `403 Forbidden`.
-- Missing resources return `404 Not Found`.
-- A user may update or delete only their own posts and comments.
-- Likes and bookmarks are scoped to the authenticated user; a user cannot
-  remove another user's like or bookmark.
-- `author_id` is always derived from the authenticated token. Attempts to send
-  it in a request body are rejected with `422` because write schemas forbid
-  unknown fields.
-- Deleting a post deletes its comments, likes, and bookmarks through database
-  cascades.
-- Deleting a user who owns content is restricted; no user-deletion endpoint is
-  exposed.
-
-## Error handling
-
-Errors use a consistent `{"detail": ...}` shape. Validation errors return `422`
-without echoing submitted values such as passwords. Database integrity
-conflicts return `409`; unexpected errors return a generic `500` response while
-details are logged only on the server.
-
-## Authentication examples
-
-### Register
-
-```powershell
-$registerBody = @{
-    username = "jane_doe"
-    email    = "jane@example.com"
-    password = "StrongPass123"
-} | ConvertTo-Json
-
-Invoke-RestMethod `
-    -Method Post `
-    -Uri "http://127.0.0.1:8000/register" `
-    -ContentType "application/json" `
-    -Body $registerBody
-```
-
-Usernames and emails are normalized to lowercase. Usernames must be 3–50
-characters and may contain letters, numbers, dots, underscores, and hyphens.
-Passwords must be 8–128 characters with at least one letter and one digit.
-
-### Log in and store the token
-
-```powershell
-$loginBody = @{
-    email    = "jane@example.com"
-    password = "StrongPass123"
-} | ConvertTo-Json
-
-$loginResponse = Invoke-RestMethod `
-    -Method Post `
-    -Uri "http://127.0.0.1:8000/login" `
-    -ContentType "application/json" `
-    -Body $loginBody
-
-$token = $loginResponse.access_token
-$headers = @{ Authorization = "Bearer $token" }
-```
-
-### Authorize in Swagger UI
-
-1. Open <http://127.0.0.1:8000/docs>.
-2. Call `POST /login`.
-3. Copy `access_token` from the response.
-4. Click **Authorize**.
-5. Paste only the token into the Bearer field.
-6. Authorize and call protected endpoints.
-
-## Post examples
-
-### List and search posts
-
-```powershell
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/posts?limit=10&offset=0&sort=newest"
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/posts?search=fastapi&sort=title"
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/posts/mine?limit=10&offset=0" -Headers $headers
-```
-
-### Update a post
-
-```powershell
-$updateBody = @{
-    title            = "My updated ANVIKSHA story"
-    content          = "The full replacement content."
-    cover_image_path = $post.cover_image_path
-} | ConvertTo-Json
-
-Invoke-RestMethod `
-    -Method Put `
-    -Uri "http://127.0.0.1:8000/posts/$($post.id)" `
-    -Headers $headers `
-    -ContentType "application/json" `
-    -Body $updateBody
-```
-
-Sending `cover_image_path = $null` (or omitting it) removes the image, because
-`PUT` replaces the whole post. Reuse the value returned by the API to keep it.
-
-### Delete a post
-
-```powershell
-Invoke-WebRequest `
-    -Method Delete `
-    -Uri "http://127.0.0.1:8000/posts/$($post.id)" `
-    -Headers $headers
-```
-
-A successful delete returns `204 No Content` with an empty response body.
-Related comments are removed by the database, and the stored cover is removed
-on a best-effort basis.
+---
 
 ## Testing
 
-The default backend suite uses an isolated in-memory SQLite database, overrides
-the application's database dependency, and recreates the schema for each test.
-SQLite connections enable foreign-key enforcement explicitly. PostgreSQL
-integration tests are opt-in and use the real Alembic migrations.
+The repository uses isolated in-memory SQLite for the default backend suite and real PostgreSQL for the opt-in integration suite. Commands are defined by the project; run them from the directories shown.
 
-Run the default suite:
+### Local verification
+
+These are local results from **2026-10-30**, not CI or production metrics:
+
+| Check | Result |
+|---|---|
+| Backend default suite | `175 passed, 1 skipped` |
+| Frontend unit tests | `47 passed in 11 files` |
+| Frontend typecheck | `PASS` |
+| Frontend lint | `25 warnings, 0 errors` |
+| Frontend production build | `PASS` |
+| API health | `200`, database reachable |
+| Alembic current | `0005_user_avatar (head)` |
+| Alembic check | `No new upgrade operations detected` |
+
+The PostgreSQL integration suite and Playwright suite require external services and are not included in these default results.
+
+### Backend
+
+From the repository root:
 
 ```powershell
 python -m pytest -q
 ```
 
-Run only the non-database-integration tests:
+The default suite does not modify the configured PostgreSQL database. The PostgreSQL integration module is skipped unless `TEST_DATABASE_URL` is set.
+
+To run the opt-in integration suite, create the dedicated `blog_api_test` database, then:
+
+**Windows PowerShell**
 
 ```powershell
-python -m pytest -m "not integration" -q
-```
-
-Current default result:
-
-```text
-175 passed, 1 skipped
-```
-
-The skipped test is the PostgreSQL integration module when `TEST_DATABASE_URL`
-is not set. With a dedicated PostgreSQL test database configured, the complete
-suite collects 179 tests (175 default + 4 integration).
-
-### PostgreSQL integration tests
-
-Create the dedicated `blog_api_test` database described above, then set an
-explicit test URL for the current shell:
-
-```powershell
-$env:TEST_DATABASE_URL = "postgresql+psycopg://blog_user:YOUR_DATABASE_PASSWORD@localhost:5432/blog_api_test"
+$env:TEST_DATABASE_URL = "postgresql+psycopg://blog_user:YOUR_PASSWORD@localhost:5432/blog_api_test"
 python -m pytest -m integration -q
 ```
 
-The integration fixture:
+**Linux/macOS**
 
-- Refuses to run unless the database name contains `test`.
-- Applies the real Alembic migrations.
-- Truncates application tables between tests.
-- Downgrades the schema after the module finishes.
-- Tests PostgreSQL timestamp awareness, cascade deletion, restrictive user
-  deletion, and ownership enforcement.
-- Verifies the additive `0004` engagement/profile/topic migration, including
-  nullable columns, unique constraints, and cascading foreign keys.
-- Verifies the additive `0005` avatar migration and the nullable
-  `users.avatar_path` column.
+```bash
+export TEST_DATABASE_URL="postgresql+psycopg://blog_user:YOUR_PASSWORD@localhost:5432/blog_api_test"
+python -m pytest -m integration -q
+```
 
-Run the complete suite with both database paths:
+The opt-in module contains four PostgreSQL tests. It applies the real Alembic migrations, recreates only its dedicated test tables, and downgrades the test schema when finished. It refuses to run unless the database name contains `test`.
+
+Run the complete backend suite with the test database configured:
 
 ```powershell
-$env:TEST_DATABASE_URL = "postgresql+psycopg://blog_user:YOUR_DATABASE_PASSWORD@localhost:5432/blog_api_test"
 python -m pytest -q
 ```
 
-Current result with PostgreSQL:
+### Frontend
 
-```text
-4 passed, 175 deselected
-179 passed
-```
-
-The PostgreSQL integration suite used a disposable PostgreSQL 18 cluster; the
-pre-existing `5432` cluster was not reset, dropped, or modified. The configured
-`5432` database was verified separately with `alembic current`, `alembic check`,
-`/health`, and the live PostgreSQL API E2E (`49/49`). See
-[the testing guide](docs/TESTING_GUIDE.md) for exact evidence and limitations.
-
-### Frontend checks
-
-From `frontend/` run:
+From `frontend/`:
 
 ```powershell
 npm test
-npm run lint
 npm run typecheck
+npm run lint
 npm run build
 ```
 
-Current frontend result:
+The Vitest suite covers validation, image-signature checks, API error formatting, cover rendering and fallback, the cover upload field, post cards, avatar fallback, password visibility, token storage, and safe Markdown rendering. Lint warnings are non-blocking; there are no lint errors.
 
-```text
-47 tests passed in 11 files
-Typecheck: PASS
-Lint: 25 warnings, 0 errors
-Build: PASS
-```
+### Browser end-to-end
 
-The suite covers safe Markdown rendering (including heading IDs, duplicate
-headings, sanitized scripts, external links, and highlighted code), image
-validation, API error formatting, cover rendering and fallback, the cover upload
-field, post cards, avatar fallback, password visibility, and token storage. The
-typecheck and production build finish without errors. Lint reports warnings
-only; there are no lint errors.
-
-### Browser end-to-end tests
-
-The checked-in Playwright suite is in `frontend/e2e/anviksha.spec.ts`:
+The Playwright suite is in `frontend/e2e/anviksha.spec.ts`. It requires a running backend with a reachable database and the Vite dev server (Playwright starts or reuses it).
 
 ```powershell
-cd frontend
 npx playwright install chromium
 npm run test:e2e
 ```
 
-Current result:
+The suite covers registration, cover upload, publishing, commenting, liking, bookmarking, the private library, editing, logout, protected-route redirects, second-user authorization checks, and mobile horizontal overflow. It is not executed in CI.
 
-```text
-2 passed (15.3s)
-```
-
-It covers registration, cover upload, publishing, commenting, liking,
-bookmarking, the private library, editing, logout, protected-route redirects,
-second-user authorization checks, and mobile horizontal overflow. The backend
-must already be running at the URL in `frontend/.env.local`; Playwright starts
-or reuses the Vite dev server.
-
-### Other verification commands
+### Additional checks
 
 ```powershell
 python -m compileall app tests
@@ -1030,170 +781,177 @@ python -m pip check
 python -m alembic check
 ```
 
-`alembic check` requires a reachable database and an up-to-date migration.
+`alembic check` requires a reachable, up-to-date database. The repository does not include a CI workflow; run these checks locally before opening a pull request.
 
-## Troubleshooting
+---
 
-### `psql` is not recognized
+## Security Considerations
 
-Add the PostgreSQL `bin` directory to `PATH`, or call the executable using its
-full path:
+The codebase includes production-minded controls, but it is not a claim of production readiness. The remaining gaps are listed explicitly below.
 
-```powershell
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost
-```
+### Implemented controls
 
-### PowerShell blocks `Activate.ps1`
+| Area | Control |
+|---|---|
+| Passwords | Argon2id hashing through `pwdlib`; passwords are never returned. |
+| Tokens | JWT `HS256` by default (`HS384`/`HS512` supported); signature, expiry, subject, and `type=access` are validated. Default lifetime is 30 minutes. |
+| Authorization | Post and comment mutations require the owner; the author is derived from the JWT. Unknown request fields are rejected. |
+| Uploads | JPEG/PNG/WebP magic-byte checks, size and pixel limits, UUID filenames, and path-traversal protection. |
+| Errors | Generic `500`/`503` responses; validation errors do not echo submitted values; integrity conflicts return `409`. |
+| CORS and response headers | Explicit origin allowlist; credentials disabled; `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Referrer-Policy: no-referrer`. |
+| Secrets | `.env` files are gitignored; secrets use `repr=False`; production rejects placeholder JWT secrets and SQLite. |
+| Markdown | `rehype-sanitize` removes unsafe HTML and URLs; story content is rendered through React, not raw HTML. |
 
-Use a process-scoped policy change:
+The SPA stores the access token in `sessionStorage` under `anviksha.access_token`. This is tab-scoped and simple, but readable by JavaScript in the same tab. Markdown sanitization reduces XSS exposure; a hardened deployment should consider an HttpOnly cookie session with CSRF protection.
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\.venv\Scripts\Activate.ps1
-```
+### Known limitations
 
-### Application fails at startup with a settings error
+| Control | Status |
+|---|---|
+| Rate limiting / brute-force throttling | Not implemented. |
+| Refresh-token rotation or revocation | Not implemented. |
+| Email verification / password reset | Not implemented. |
+| TLS termination | Not included; deploy behind an HTTPS reverse proxy or managed platform. |
+| CSP / HSTS | Not set by the application; add at the edge. |
+| Malware scanning for uploads | Not implemented; image type and dimension validation only. |
+| Object storage / CDN | Uploads are stored on local disk only. |
+| Audit logging / alerting | Not included. |
+| CI dependency/advisory scanning | Not included. |
+| Admin role / moderation workflow | Not implemented. |
+| Draft/private posts | Not implemented; all posts are public. |
+| User deletion endpoint | Not exposed; the database restricts deleting users with content. |
 
-Check that:
+Before exposing ANVIKSHA publicly, address the items above and review [`docs/AUTHENTICATION_AND_SECURITY.md`](docs/AUTHENTICATION_AND_SECURITY.md).
 
-- `.env` exists and was copied from `.env.example`.
-- `JWT_SECRET_KEY` is at least 32 characters.
-- `DATABASE_URL` begins with `postgresql+psycopg://`.
-- `ENVIRONMENT` is `development`, `test`, or `production`.
-- `UPLOAD_DIR` is writable by the API process.
+---
 
-### `/health` returns 503
+## Screenshots and Demo
 
-The API is running but cannot query PostgreSQL. Verify:
+> **No product screenshots or demo recordings are committed yet.** The repository contains the official ANVIKSHA brand assets in `frontend/public/brand/`, but no verified UI captures. Do not add mocked or fabricated screenshots.
 
-- The PostgreSQL service is running.
-- The role, password, host, port, and database name in `.env` are correct.
-- The database exists.
-- Migrations have been applied: `python -m alembic upgrade head`.
+### Available brand assets
 
-### Post creation returns a database error
+| Asset | Path |
+|---|---|
+| Horizontal logo | [`frontend/public/brand/anviksha-logo-horizontal.png`](frontend/public/brand/anviksha-logo-horizontal.png) |
+| Full logo | [`frontend/public/brand/anviksha-logo-full.png`](frontend/public/brand/anviksha-logo-full.png) |
+| Symbol | [`frontend/public/brand/anviksha-symbol.png`](frontend/public/brand/anviksha-symbol.png) |
+| App icon | [`frontend/public/brand/anviksha-app-icon.png`](frontend/public/brand/anviksha-app-icon.png) |
 
-If the `posts` table predates the cover-image migration, it may lack the
-`cover_image_path` column. Apply the additive migration:
+### Adding genuine screenshots
 
-```powershell
-python -m alembic upgrade head
-```
+1. Run the backend and frontend locally with real data.
+2. Capture the running UI at desktop (for example, 1440 px wide) and mobile (for example, 390 px wide) sizes.
+3. Save the files under `docs/screenshots/` using descriptive names.
+4. Add Markdown image references with meaningful alt text and a short caption.
 
-### Profile picture upload returns a database error
+Suggested captures (not present in the repository):
 
-If the `users` table predates the avatar migration, it may lack the
-`avatar_path` column. Apply the additive migration:
+| Suggested file | What to capture |
+|---|---|
+| `docs/screenshots/home.png` | Homepage cover story and issue contents. |
+| `docs/screenshots/story.png` | Story detail with Markdown, table of contents, and comments. |
+| `docs/screenshots/editor.png` | Markdown editor with cover upload. |
+| `docs/screenshots/library.png` | Private library with collections and filters. |
+| `docs/screenshots/profile.png` | Public author profile. |
 
-```powershell
-python -m alembic upgrade head
-```
+A demo video is also not committed. If one is added later, link it from this section rather than embedding an unverified external URL.
 
-Do not reset or drop the database.
+---
 
-### Uploads fail with `413` or `415`
+## Future Enhancements
 
-- `413`: the file exceeds `UPLOAD_MAX_SIZE_MB`. Raise the backend limit and the
-  frontend `VITE_MAX_UPLOAD_MB` together.
-- `415`: the bytes are not a valid JPEG, PNG, or WebP image. Renaming a file does
-  not change its format.
-- `422`: the file is empty, malformed, or has dimensions above
-  `UPLOAD_MAX_IMAGE_PIXELS`.
+The following items are **not implemented** and are good candidates for future work:
 
-### Uploaded images return `404`
+- Add CI for backend tests, frontend checks, browser E2E, and dependency advisory scanning.
+- Add refresh-token rotation, revocation, email verification, and password reset.
+- Add rate limiting and abuse protection for authentication and write endpoints.
+- Add draft/private posts, scheduled publishing, and an editorial review workflow.
+- Add notifications for comments, likes, and new stories from followed authors.
+- Add moderation, reporting, and an admin role.
+- Move uploads to object storage/CDN and add orphan-file cleanup.
+- Add PostgreSQL full-text search or an external search service for larger corpora.
+- Add accessibility audits, visual regression tests, and load testing.
+- Add Docker/Compose and a documented HTTPS deployment with observability and backups.
 
-- Confirm `UPLOAD_DIR` points at the directory containing the stored files.
-- Confirm the relative `cover_image_path` was saved, not a browser object URL.
-- Do not move or rename files manually; the database stores the relative key.
-- Re-upload the image if the file was deleted outside the application.
+---
 
-### The frontend cannot call the API
+## Contributing
 
-Check that:
+Contributions are welcome. Keep changes focused, preserve the existing API contract, and include tests and documentation updates.
 
-- The API is running and accepts requests on the URL configured in
-  `frontend/.env.local` or the default `http://127.0.0.1:8000`.
-- The frontend origin is listed in `CORS_ORIGINS` in `.env`.
-- You restart the API after changing `CORS_ORIGINS`.
+1. Fork the repository and create a branch:
 
-### `password authentication failed for user "blog_user"`
+   ```bash
+   git checkout -b feature/your-change
+   ```
 
-Reset the role password in `psql`, update the password in `.env`, and remember
-to URL-encode reserved characters if present.
+2. Make the change. Do not commit `.env` files, credentials, uploaded files, or generated caches.
+3. Add or update tests.
+4. Run the relevant checks:
 
-### `alembic` cannot connect to the database
+   ```powershell
+   python -m pytest -q
+   Set-Location frontend
+   npm test
+   npm run lint
+   npm run typecheck
+   npm run build
+   ```
 
-Alembic reads the same application settings as the API. Test the configured URL
-with `psql`, or run:
+5. Update the README or docs when behavior changes.
+6. Open a pull request with a clear summary and test evidence.
 
-```powershell
-python -m alembic current
-```
+Use additive Alembic migrations; never rewrite an existing migration that may have been applied. For security-sensitive issues, avoid posting secrets or exploit details in a public issue.
 
-### Tests cannot import `app`
-
-Run pytest from the project root with the virtual environment active. The
-included `pytest.ini` adds the project root to the test import path.
-
-### Integration tests are skipped
-
-`TEST_DATABASE_URL` is not set. Set it to a dedicated PostgreSQL test database
-whose name contains `test`.
-
-## Security notes
-
-- Passwords are hashed with Argon2id and never returned by the API.
-- JWT secrets and database credentials come from environment variables.
-- Tokens include `sub`, `type`, `iat`, and `exp`; signature, expiration, subject,
-  and token type are validated.
-- Protected writes require an active authenticated user.
-- Ownership is verified on every update and delete.
-- Request schemas forbid undeclared fields, preventing client-supplied
-  `author_id` or other privileged values.
-- Uploaded images, including profile pictures, are validated from their actual
-  bytes, not their filename or client content type.
-- Uploaded files receive server-generated UUID names and are stored only inside
-  `UPLOAD_DIR`. Profile pictures live under `UPLOAD_DIR/avatars/`; covers live
-  under `UPLOAD_DIR/covers/`.
-- Upload serving rejects traversal segments, drive letters, and disallowed
-  extensions, and verifies that the resolved file stays inside `UPLOAD_DIR`.
-- Remote image URLs are not accepted for new posts, so the backend never fetches
-  user-supplied URLs.
-- Validation errors do not echo request values.
-- Unexpected exceptions return generic messages; details stay in server logs.
-- Database foreign keys enforce cascade or restrict behavior independently of
-  application code. SQLite test connections explicitly enable foreign keys.
-- Security headers (`X-Content-Type-Options`, `X-Frame-Options`,
-  `Referrer-Policy`) are added to responses.
-
-This project does not include rate limiting, refresh-token rotation, token
-revocation, email verification, draft/private posts, or deployment/TLS
-configuration. All posts are public. Add the relevant controls before exposing a
-public production deployment.
-
-## Known limitations
-
-- PostgreSQL integration tests are opt-in and are skipped unless
-  `TEST_DATABASE_URL` points at a dedicated test database.
-- Uploaded images are stored on local disk. There is no object-storage/CDN
-  integration or automatic orphan-file cleanup job.
-- The frontend uses route-level code splitting; the main production chunk is
-  below Vite's 500 kB warning threshold. Markdown rendering is a separate lazy
-  chunk. A full accessibility (WCAG) audit is not included.
-- Browser E2E is checked in and passes locally, but it requires a running backend
-  and frontend. It is not executed in CI.
-- Rate limiting, refresh-token rotation, token revocation, email verification,
-  draft/private posts, and deployment/TLS configuration are out of scope; see
-  [Security notes](#security-notes).
-- The configured local PostgreSQL `5432` credential now authenticates and the
-  application health check returns `200`. PostgreSQL integration tests still use
-  a disposable test database so they never truncate application data.
-- No GitHub remote or push has been configured. The repository is prepared
-  locally and is GitHub-ready; publishing requires an explicit remote URL and
-  authorization.
+---
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
-#   A N V I K S H A _ B L O G _ A P I  
- 
+Released under the **MIT License**. See [`LICENSE`](LICENSE) for the full text.
+
+Copyright (c) 2026 ANVIKSHA Knowledge Platform Contributors.
+
+---
+
+## Project Information and Acknowledgements
+
+| Item | Detail |
+|---|---|
+| Project | ANVIKSHA - Knowledge Platform for Curious Minds |
+| Tagline | Question Deeper. Understand Better. |
+| Repository | [shaida-labs/ANVIKSHA_BLOG_API](https://github.com/shaida-labs/ANVIKSHA_BLOG_API) |
+| API version | `1.0.0` |
+| Database revision | `0005_user_avatar` |
+| License | MIT |
+| Deployment | No hosted demo or deployment URL is included. |
+
+### Brand palette
+
+| Token | Hex | Use |
+|---|---|---|
+| `--color-paper` | `#F2EEE5` | Page background (warm ivory) |
+| `--color-ink` | `#171714` | Primary text (ink black) |
+| `--color-accent` | `#A47A43` | Accent and links (muted bronze) |
+
+### Documentation
+
+| Document | Purpose |
+|---|---|
+| [Project overview](docs/PROJECT_OVERVIEW.md) | Product identity, scope, and feature summary. |
+| [Architecture](docs/ARCHITECTURE.md) | Layers, request lifecycle, and data flow. |
+| [Database schema](docs/DATABASE_SCHEMA.md) | Tables, relationships, constraints, and migration history. |
+| [API documentation](docs/API_DOCUMENTATION.md) | Endpoint contracts, payloads, and status codes. |
+| [Authentication and security](docs/AUTHENTICATION_AND_SECURITY.md) | Implemented controls and production follow-ups. |
+| [Setup and installation](docs/SETUP_AND_INSTALLATION.md) | Detailed local setup and verification notes. |
+| [Testing guide](docs/TESTING_GUIDE.md) | Test commands and evidence. |
+| [Deployment guide](docs/DEPLOYMENT_GUIDE.md) | A practical deployment path; no live deployment is claimed. |
+| [OpenAPI snapshot](docs/openapi.json) | Generated 18-path / 29-operation schema. |
+
+### Project context and acknowledgements
+
+ANVIKSHA was developed as a full-stack internship assignment focused on a RESTful Blog Application API. The FastAPI service is the primary deliverable; the React client is a real API consumer.
+
+Built with FastAPI, SQLAlchemy, Alembic, PostgreSQL, Pydantic, React, Vite, TypeScript, Tailwind CSS, React Router, Axios, React Markdown, highlight.js, and Lucide. The ANVIKSHA brand assets live in `frontend/public/brand/`.
+
+<p align="center"><em>Question Deeper. Understand Better.</em></p>
